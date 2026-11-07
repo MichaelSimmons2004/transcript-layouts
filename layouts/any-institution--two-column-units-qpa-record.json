@@ -1,0 +1,439 @@
+{
+  "recipe_format": 1,
+  "id": "any-institution--two-column-units-qpa-record",
+  "name": "Two-column student record with Units Passed / Units Factored / Final QPA totals (Date Printed / Birth Date/Month header)",
+  "institution": null,
+  "description": "Two-column record pages without a dividing rule. Each page has a header band with 'Date Printed:', 'Page N of M', 'Student Name:' and 'Birth Date/Month:'. Page 1 has College / Department / Major lines. The record runs between 'Beginning of Undergraduate Record', 'End of Undergraduate Record and Beginning of Graduate Record' and 'End of Graduate Record' markers, which are kept as remarks. Advanced placement, credit-by-examination and 'TRANSFER CREDIT FROM ...' blocks list rows without quality points and are followed by a 'TOTAL AP / TRANSFER CREDIT' line. Term headings are a season and a four-digit year, optionally with a summer session such as '1/All' or '2'. Course rows are 'DPT CRS# TITLE UNITS GRADE POINTS', optionally followed by a '- ...' note line. Each term has 'Semester' and 'Cumulative' lines (units passed, units factored, QPA, total points). Terms may carry withdrawal notes. An 'Academic Achievements' list of certificates may follow the record. Built and tested on two samples of the layout.",
+  "layout": {
+    "type": "columns_at",
+    "split_x": [
+      300
+    ],
+    "header_bottom": 60,
+    "header_bottom_later_pages": 60
+  },
+  "detect": {
+    "header_contains": [
+      "Date Printed:",
+      "Student Name:",
+      "Birth Date/Month:"
+    ],
+    "text_contains": [
+      "CRS #",
+      "FACTORED",
+      "QPA"
+    ]
+  },
+  "constants": {
+    "document.credit_unit": "units"
+  },
+  "fields": [
+    {
+      "field": "student.name_as_printed",
+      "pattern": "Student Name:\\s*(.+?)\\s*(?:Birth Date/Month:.*)?$"
+    },
+    {
+      "field": "student.name",
+      "pattern": "Student Name:\\s*(.+?)\\s*(?:Birth Date/Month:.*)?$",
+      "value": "{1|title}"
+    },
+    {
+      "field": "student.date_of_birth",
+      "pattern": "Birth Date/Month:\\s*(\\S+)"
+    },
+    {
+      "field": "document.issue_date",
+      "pattern": "Date Printed:\\s*(\\d{1,2} [A-Za-z]{3} \\d{4})",
+      "value": "{1|date:%d %b %Y}"
+    },
+    {
+      "field": "document.page_count",
+      "pattern": "Page \\d+ of (\\d+)",
+      "value": "{1|int}"
+    }
+  ],
+  "required": [
+    "student.name_as_printed"
+  ],
+  "tables": {
+    "total_scopes": {
+      "Semester": "term",
+      "Cumulative": "cumulative"
+    }
+  },
+  "lines": {
+    "ignore": [
+      "^FINAL$",
+      "^FINAL\\s+QUALITY$",
+      "^DPT\\s+CRS\\s*#\\s+COURSE TITLE\\s+UNITS\\s+GRADE(?:\\s+POINTS)?$",
+      "^UNITS\\s+UNITS\\s+FINAL\\s+TOTAL$",
+      "^PASSED\\s+FACTORED\\s+QPA\\s+POINTS$",
+      "^DESCRIPTION\\s+DATE$"
+    ],
+    "rules": [
+      {
+        "name": "college",
+        "pattern": "^College:\\s+(?P<college>.+)$",
+        "action": "start_program",
+        "set": {
+          "credential_type": "major",
+          "status": "in_progress",
+          "college_or_school": "{college}"
+        }
+      },
+      {
+        "name": "department",
+        "pattern": "^Department:\\s+(?P<dept>.+)$",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "department": "{dept}"
+        }
+      },
+      {
+        "name": "major",
+        "pattern": "^Major:\\s+(?P<major>.+)$",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "name": "{major}",
+          "field_of_study": "{major}"
+        },
+        "add_note": "Printed as a College / Department / Major block without a degree."
+      },
+      {
+        "name": "beginning of undergraduate record",
+        "pattern": "^Beginning of Undergraduate Record$",
+        "requires": [
+          "program"
+        ],
+        "action": "remark",
+        "section": "ug",
+        "then": [
+          {
+            "action": "program",
+            "set": {
+              "academic_level": "Undergraduate"
+            }
+          }
+        ]
+      },
+      {
+        "name": "end of undergraduate / beginning of graduate record",
+        "pattern": "^End of Undergraduate Record and Beginning of Graduate Record$",
+        "action": "remark",
+        "section": "grad"
+      },
+      {
+        "name": "beginning of graduate record",
+        "pattern": "^Beginning of Graduate Record$",
+        "action": "remark",
+        "section": "grad"
+      },
+      {
+        "name": "end of undergraduate record",
+        "pattern": "^End of Undergraduate Record$",
+        "action": "remark",
+        "section": "end"
+      },
+      {
+        "name": "end of graduate record",
+        "pattern": "^End of Graduate Record$",
+        "action": "remark",
+        "section": "end"
+      },
+      {
+        "name": "academic achievements heading",
+        "pattern": "^Academic Achievements$",
+        "action": "ignore",
+        "section": "achievements"
+      },
+      {
+        "name": "test credit heading",
+        "pattern": "^(?:ADVANCED PLACEMENT CREDIT|CREDIT BY EXAMINATION)$",
+        "in_section": [
+          "ug",
+          "ug_test",
+          "ug_transfer"
+        ],
+        "action": "start_term",
+        "section": "ug_test",
+        "set": {
+          "name": "{line}",
+          "term_type": "test_credit",
+          "academic_level": "Undergraduate"
+        }
+      },
+      {
+        "name": "transfer credit heading",
+        "pattern": "^TRANSFER CREDIT FROM (?P<school>.+)$",
+        "in_section": [
+          "ug",
+          "ug_test",
+          "ug_transfer"
+        ],
+        "action": "start_term",
+        "section": "ug_transfer",
+        "set": {
+          "name": "{line}",
+          "term_type": "transfer",
+          "institution": "{school}",
+          "academic_level": "Undergraduate"
+        }
+      },
+      {
+        "name": "test credit course row",
+        "pattern": "^(?:(?P<subject>[A-Z]{2,4})\\s+)?(?P<number>-?\\d{5})\\s+(?P<title>.+?)\\s+(?P<credits>\\d+\\.\\d)\\s+(?P<grade>[A-Z]{1,2}[+-]?)$",
+        "in_section": "ug_test",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": {
+            "templates": [
+              "{subject} {number}",
+              "{number}"
+            ]
+          },
+          "title": "{title}",
+          "credits": "{credits|number}",
+          "grade": "{grade}",
+          "flags": "test_credit"
+        },
+        "status_from_grade": {
+          "table": {
+            "W": "withdrawn",
+            "F": "failed",
+            "R": "failed"
+          },
+          "default": "completed"
+        }
+      },
+      {
+        "name": "transfer course row",
+        "pattern": "^(?:(?P<subject>[A-Z]{2,4})\\s+)?(?P<number>-?\\d{5})\\s+(?P<title>.+?)\\s+(?P<credits>\\d+\\.\\d)\\s+(?P<grade>[A-Z]{1,2}[+-]?)$",
+        "in_section": "ug_transfer",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": {
+            "templates": [
+              "{subject} {number}",
+              "{number}"
+            ]
+          },
+          "title": "{title}",
+          "credits": "{credits|number}",
+          "grade": "{grade}",
+          "flags": "transfer"
+        },
+        "status_from_grade": {
+          "table": {
+            "W": "withdrawn",
+            "F": "failed",
+            "R": "failed"
+          },
+          "default": "completed"
+        }
+      },
+      {
+        "name": "total AP / transfer credit",
+        "pattern": "^TOTAL AP / TRANSFER CREDIT\\s+(?P<earned>\\d+\\.\\d)$",
+        "in_section": [
+          "ug_test",
+          "ug_transfer"
+        ],
+        "action": "start_summary",
+        "section": "ug",
+        "set": {
+          "label": "TOTAL AP / TRANSFER CREDIT",
+          "scope": "transfer",
+          "academic_level": "Undergraduate",
+          "earned": "{earned|number}"
+        }
+      },
+      {
+        "name": "undergraduate term heading",
+        "pattern": "^(?P<season>Fall|Spring|Summer|Winter)(?:\\s+\\d(?:/All)?)?\\s+(?P<year>\\d{4})$",
+        "in_section": [
+          "ug",
+          "ug_test",
+          "ug_transfer"
+        ],
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "section": "ug",
+        "set": {
+          "name": "{line}",
+          "season": "{season|lower}",
+          "year": "{year|int}",
+          "term_type": "institutional",
+          "academic_level": "Undergraduate"
+        }
+      },
+      {
+        "name": "graduate term heading",
+        "pattern": "^(?P<season>Fall|Spring|Summer|Winter)(?:\\s+\\d(?:/All)?)?\\s+(?P<year>\\d{4})$",
+        "in_section": "grad",
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "section": "grad",
+        "set": {
+          "name": "{line}",
+          "season": "{season|lower}",
+          "year": "{year|int}",
+          "term_type": "institutional",
+          "academic_level": "Graduate"
+        }
+      },
+      {
+        "name": "withdrawal note",
+        "pattern": "^Student Initiated Withdrawal \\d{1,2} [A-Z][a-z]{2} \\d{4}$",
+        "in_section": [
+          "ug",
+          "grad"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "set": {
+          "notes": "{line}"
+        }
+      },
+      {
+        "name": "course row",
+        "pattern": "^(?P<subject>[A-Z]{2,4})\\s+(?P<number>-?\\d{5})\\s+(?P<title>.+?)\\s+(?P<credits>\\d+\\.\\d)\\s+(?P<grade>[A-Z]{1,2}[+-]?)\\s+(?P<qp>\\d+\\.\\d)$",
+        "in_section": [
+          "ug",
+          "grad"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{subject} {number}",
+          "title": "{title}",
+          "credits": "{credits|number}",
+          "grade": "{grade}",
+          "quality_points": "{qp|number}"
+        },
+        "status_from_grade": {
+          "table": {
+            "R": "failed",
+            "W": "withdrawn",
+            "O": "no_credit",
+            "I": "incomplete",
+            "AU": "audit"
+          },
+          "flags": {
+            "P": [
+              "pass_fail"
+            ],
+            "W": [
+              "withdrawn"
+            ],
+            "O": [
+              "excluded_from_gpa"
+            ],
+            "S": [
+              "excluded_from_gpa"
+            ]
+          },
+          "default": "completed"
+        }
+      },
+      {
+        "name": "course note line",
+        "pattern": "^- (?P<note>.+)$",
+        "in_section": [
+          "ug",
+          "grad"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "continue": true,
+        "set": {
+          "notes": "{line}"
+        }
+      },
+      {
+        "name": "term totals",
+        "pattern": "^(?P<label>Semester|Cumulative)\\s+(?P<passed>\\d+\\.\\d)\\s+(?P<factored>\\d+\\.\\d)\\s+(?P<qpa>\\d+\\.\\d{2})\\s+(?P<points>\\d+\\.\\d)$",
+        "in_section": [
+          "ug",
+          "grad"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "set": {
+          "label": "{label}",
+          "scope": {
+            "template": "{label}",
+            "map": "total_scopes"
+          },
+          "earned": "{passed|number}",
+          "gpa_hours": "{factored|number}",
+          "gpa": "{qpa|number}",
+          "quality_points": "{points|number}"
+        }
+      },
+      {
+        "name": "achievement: certificate with subject",
+        "pattern": "^- (?P<name>.+? Certificate: (?P<field>.+?))\\s+(?P<date>[A-Z][a-z]{2} \\d{1,2}, \\d{4})$",
+        "in_section": "achievements",
+        "action": "start_program",
+        "set": {
+          "name": "{name}",
+          "credential_type": "certificate",
+          "degree_level": "certificate",
+          "field_of_study": "{field}",
+          "status": "awarded",
+          "date_awarded": "{date|date:%b %d, %Y}",
+          "notes": "Listed under Academic Achievements"
+        }
+      },
+      {
+        "name": "achievement: certificate completed",
+        "pattern": "^- (?P<name>.+? Certificate) Completed\\s+(?P<date>[A-Z][a-z]{2} \\d{1,2}, \\d{4})$",
+        "in_section": "achievements",
+        "action": "start_program",
+        "set": {
+          "name": "{name}",
+          "credential_type": "certificate",
+          "degree_level": "certificate",
+          "status": "awarded",
+          "date_awarded": "{date|date:%b %d, %Y}",
+          "notes": "Listed under Academic Achievements as '{name} Completed', dated {date}."
+        }
+      }
+    ]
+  },
+  "notes": [
+    "Read by App-parser (two-column Units Passed / Units Factored / QPA layout, no AI). Values are as printed."
+  ],
+  "learned": {
+    "date": "2026-10-27",
+    "by": "claude-opus-5-5",
+    "tries": 1,
+    "verified_on": "2 transcripts (App-parser reproduced Claude's reading exactly)"
+  }
+}

@@ -1,0 +1,1391 @@
+{
+  "recipe_format": 1,
+  "id": "oklahoma-state-university--official-transcript",
+  "name": "Oklahoma State University - Official Transcript (Banner, two-column Courier record)",
+  "institution": "Oklahoma State University",
+  "description": "OSU electronic official transcript layout. Page 1 is an authentication cover letter and the last page is the 'Transcript Legend'; both are skipped. Record pages have a repeated header (OKLAHOMA STATE UNIVERSITY, Issued To, student name, DOB, Last 4 SSN, 'Level: ...') and a 6.9pt Courier body in two columns split at x=300. Each level block (Graduate, Undergraduate) starts with Latest Curriculum, Comments and 'Degrees Awarded' blocks (College/Major/Concentration/Minor lines, thesis and dissertation titles), then 'TRANSFER CREDIT ACCEPTED BY THE INSTITUTION:' terms ('<Season YYYY | YYYYTT> <school>'), 'INSTITUTION CREDIT:' terms ('<Season YYYY>'), course rows 'SUBJ NO. TITLE CRED GRD [PTS] [R]', 'Ehrs: GPA-Hrs: QPts: GPA:' term totals, and a TRANSCRIPT TOTALS block. A large diagonal watermark stored as text is dropped by size. Built and tested on one sample transcript.",
+  "layout": {
+    "type": "columns_at",
+    "split_x": [
+      300
+    ],
+    "header_bottom": 190,
+    "footer_top": 740,
+    "skip_pages_containing": [
+      "How to Authenticate This Official Transcript",
+      "Transcript Legend"
+    ],
+    "drop_chars": [
+      {
+        "size_at_least": 22
+      }
+    ]
+  },
+  "detect": {
+    "header_contains": [
+      "OKLAHOMA STATE UNIVERSITY",
+      "DOB"
+    ],
+    "text_contains": [
+      "Transcript Legend",
+      "revised August 2022",
+      "SUBJ NO.",
+      "END OF TRANSCRIPT",
+      "Last 4 SSN"
+    ]
+  },
+  "constants": {
+    "document.title": "Official Transcript",
+    "document.is_official": true,
+    "document.credit_unit": "semester credit hours",
+    "institution.name": "Oklahoma State University",
+    "institution.issuing_office": "Office of the Registrar"
+  },
+  "fields": [
+    {
+      "field": "student.name_as_printed",
+      "pattern": "^([^\\n:|]*[A-Za-z][^\\n:|]*?)[ \\t]*\\n[ \\t]*(?:DOB\\b|\\d{2}-[A-Z]{3}-[0-9X]{4}[ \\t]*\\n[ \\t]*DOB\\b)"
+    },
+    {
+      "field": "student.name",
+      "pattern": "^([^\\n:|]*[A-Za-z][^\\n:|]*?)[ \\t]*\\n[ \\t]*(?:DOB\\b|\\d{2}-[A-Z]{3}-[0-9X]{4}[ \\t]*\\n[ \\t]*DOB\\b)"
+    },
+    {
+      "field": "student.date_of_birth",
+      "pattern": "(?:^DOB[ \\t]+(\\S+)[ \\t]*$|^(\\d{2}-[A-Z]{3}-[0-9X]{4})[ \\t]*\\n[ \\t]*DOB\\b)",
+      "value": {
+        "templates": [
+          "{1}",
+          "{2}"
+        ]
+      }
+    },
+    {
+      "field": "document.issue_date",
+      "pattern": "(\\d{2}-[A-Z]{3}-\\d{4})[ \\t]+Page:",
+      "value": "{1|date:%d-%b-%Y}"
+    },
+    {
+      "field": "institution.email",
+      "pattern": "registrar@okstate\\.edu",
+      "value": "{0}"
+    },
+    {
+      "field": "institution.address",
+      "pattern": "(\\d+ Student Union)[ \\t]*\\|[ \\t]*(Stillwater, Oklahoma \\d{5}(?:-\\d{4})?)",
+      "value": "{1}, {2}"
+    },
+    {
+      "field": "institution.phone",
+      "source": "text",
+      "pattern": "registrar@okstate\\.edu or (\\d{3}-\\d{3}-\\d{4})"
+    }
+  ],
+  "required": [
+    "student.name"
+  ],
+  "tables": {
+    "summary_scopes": {
+      "TOTAL INSTITUTION": "institutional",
+      "TOTAL TRANSFER": "transfer",
+      "OVERALL": "overall"
+    },
+    "repeat_codes": {
+      "E": "repeat excluded from earned hours and GPA",
+      "I": "repeat included in earned hours and GPA",
+      "A": "repeat included in GPA but excluded from earned hours"
+    },
+    "repeat_flags": {
+      "E": "repeated",
+      "I": "repeated",
+      "A": "repeated"
+    },
+    "repeat_excluded_flags": {
+      "E": "excluded_from_gpa"
+    },
+    "grade_types": {
+      "PA": "PA- = performance/activity (leisure) course; excluded from earned hours and GPA",
+      "DEV": "DEV- = developmental/remedial course; excluded from earned hours and GPA",
+      "CBE": "CBE- = credit by exam/prior learning"
+    }
+  },
+  "lines": {
+    "ignore": [
+      "^_{20,}$",
+      "^\\*+\\s*CONTINUED ON (?:NEXT COLUMN|PAGE \\d+)[\\s*]*$",
+      "^Last 4 SSN$"
+    ],
+    "rules": [
+      {
+        "name": "first level line (graduate): legend notes",
+        "pattern": "^Level:\\s*Graduate$",
+        "not_in_section": [
+          "grad",
+          "grad_curr",
+          "grad_comm",
+          "grad_deg",
+          "grad_deg_ms",
+          "grad_minor",
+          "grad_thesis",
+          "grad_thesis_ms",
+          "grad_thesis2",
+          "grad_diss",
+          "grad_diss2",
+          "grad_tr",
+          "grad_inst",
+          "grad_totals",
+          "ug",
+          "ug_curr",
+          "ug_comm",
+          "ug_deg",
+          "ug_minor",
+          "ug_tr",
+          "ug_inst",
+          "ug_totals",
+          "end"
+        ],
+        "action": "remark",
+        "section": "grad",
+        "text": "Transcript Legend notes, revised August 2022 - For graduate students, C denotes passing; D and F are failing grades that do not count toward a degree. Repeat column R codes - E repeat excluded from earned hours and GPA; I repeat included in earned hours and GPA; A repeat included in GPA but excluded from earned hours."
+      },
+      {
+        "name": "first level line (undergraduate): legend notes",
+        "pattern": "^Level:\\s*Undergraduate$",
+        "not_in_section": [
+          "grad",
+          "grad_curr",
+          "grad_comm",
+          "grad_deg",
+          "grad_deg_ms",
+          "grad_minor",
+          "grad_thesis",
+          "grad_thesis_ms",
+          "grad_thesis2",
+          "grad_diss",
+          "grad_diss2",
+          "grad_tr",
+          "grad_inst",
+          "grad_totals",
+          "ug",
+          "ug_curr",
+          "ug_comm",
+          "ug_deg",
+          "ug_minor",
+          "ug_tr",
+          "ug_inst",
+          "ug_totals",
+          "end"
+        ],
+        "action": "remark",
+        "section": "ug",
+        "text": "Transcript Legend notes, revised August 2022 - For graduate students, C denotes passing; D and F are failing grades that do not count toward a degree. Repeat column R codes - E repeat excluded from earned hours and GPA; I repeat included in earned hours and GPA; A repeat included in GPA but excluded from earned hours."
+      },
+      {
+        "name": "level graduate",
+        "pattern": "^Level:\\s*Graduate$",
+        "action": "ignore",
+        "section": "grad"
+      },
+      {
+        "name": "level undergraduate",
+        "pattern": "^Level:\\s*Undergraduate$",
+        "action": "ignore",
+        "section": "ug"
+      },
+      {
+        "name": "column heading ending a degrees block whose last entry is a degree (grad)",
+        "pattern": "^SUBJ NO\\.\\s+COURSE TITLE\\s+CRED\\s+GRD\\s+PTS\\s+R$",
+        "in_section": [
+          "grad_deg",
+          "grad_deg_ms",
+          "grad_thesis",
+          "grad_thesis_ms",
+          "grad_thesis2",
+          "grad_diss",
+          "grad_diss2"
+        ],
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "section": "grad",
+        "add_note": "Last degree listed for this level; the Latest Curriculum, if printed, is also listed as a remark: {@program.name}, {@program.college_or_school}, Major: {@program.field_of_study}"
+      },
+      {
+        "name": "column heading ending a degrees block whose last entry is a degree (ug)",
+        "pattern": "^SUBJ NO\\.\\s+COURSE TITLE\\s+CRED\\s+GRD\\s+PTS\\s+R$",
+        "in_section": [
+          "ug_deg"
+        ],
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "section": "ug",
+        "add_note": "Last degree listed for this level; the Latest Curriculum, if printed, is also listed as a remark: {@program.name}, {@program.college_or_school}, Major: {@program.field_of_study}"
+      },
+      {
+        "name": "column heading (grad)",
+        "pattern": "^SUBJ NO\\.\\s+COURSE TITLE\\s+CRED\\s+GRD\\s+PTS\\s+R$",
+        "in_section": [
+          "grad",
+          "grad_curr",
+          "grad_comm",
+          "grad_deg",
+          "grad_deg_ms",
+          "grad_minor",
+          "grad_thesis",
+          "grad_thesis_ms",
+          "grad_thesis2",
+          "grad_diss",
+          "grad_diss2",
+          "grad_tr",
+          "grad_inst"
+        ],
+        "action": "ignore",
+        "section": "grad"
+      },
+      {
+        "name": "column heading (ug)",
+        "pattern": "^SUBJ NO\\.\\s+COURSE TITLE\\s+CRED\\s+GRD\\s+PTS\\s+R$",
+        "in_section": [
+          "ug",
+          "ug_curr",
+          "ug_comm",
+          "ug_deg",
+          "ug_minor",
+          "ug_tr",
+          "ug_inst"
+        ],
+        "action": "ignore",
+        "section": "ug"
+      },
+      {
+        "name": "latest curriculum heading (grad)",
+        "pattern": "^Latest Curriculum$",
+        "in_section": "grad",
+        "action": "ignore",
+        "section": "grad_curr"
+      },
+      {
+        "name": "latest curriculum heading (ug)",
+        "pattern": "^Latest Curriculum$",
+        "in_section": "ug",
+        "action": "ignore",
+        "section": "ug_curr"
+      },
+      {
+        "name": "comments heading (grad)",
+        "pattern": "^Comments:$",
+        "in_section": [
+          "grad",
+          "grad_curr"
+        ],
+        "action": "ignore",
+        "section": "grad_comm"
+      },
+      {
+        "name": "comments heading (ug)",
+        "pattern": "^Comments:$",
+        "in_section": [
+          "ug",
+          "ug_curr"
+        ],
+        "action": "ignore",
+        "section": "ug_comm"
+      },
+      {
+        "name": "master's degree awarded (grad)",
+        "pattern": "^Degrees Awarded\\s+(?P<degree>Master\\b.*?)\\s+(?P<date>\\d{2}-[A-Z]{3}-\\d{4})$",
+        "in_section": [
+          "grad",
+          "grad_curr",
+          "grad_comm",
+          "grad_deg",
+          "grad_deg_ms",
+          "grad_minor"
+        ],
+        "action": "start_program",
+        "section": "grad_deg_ms",
+        "set": {
+          "name": "{degree}",
+          "credential_type": "degree",
+          "degree_name": "{degree}",
+          "degree_level": "{degree|degree_level}",
+          "academic_level": "Graduate",
+          "status": "awarded",
+          "date_awarded": "{date|date:%d-%b-%Y}",
+          "notes": "Award date printed as {date}"
+        }
+      },
+      {
+        "name": "degree awarded after a master's (grad)",
+        "pattern": "^Degrees Awarded\\s+(?P<degree>\\S.*?)\\s+(?P<date>\\d{2}-[A-Z]{3}-\\d{4})$",
+        "in_section": [
+          "grad_deg_ms"
+        ],
+        "action": "start_program",
+        "section": "grad_deg_ms",
+        "set": {
+          "name": "{degree}",
+          "credential_type": "degree",
+          "degree_name": "{degree}",
+          "degree_level": "{degree|degree_level}",
+          "academic_level": "Graduate",
+          "status": "awarded",
+          "date_awarded": "{date|date:%d-%b-%Y}",
+          "notes": "Award date printed as {date}"
+        }
+      },
+      {
+        "name": "degree awarded (grad)",
+        "pattern": "^Degrees Awarded\\s+(?P<degree>\\S.*?)\\s+(?P<date>\\d{2}-[A-Z]{3}-\\d{4})$",
+        "in_section": [
+          "grad",
+          "grad_curr",
+          "grad_comm",
+          "grad_deg",
+          "grad_minor"
+        ],
+        "action": "start_program",
+        "section": "grad_deg",
+        "set": {
+          "name": "{degree}",
+          "credential_type": "degree",
+          "degree_name": "{degree}",
+          "degree_level": "{degree|degree_level}",
+          "academic_level": "Graduate",
+          "status": "awarded",
+          "date_awarded": "{date|date:%d-%b-%Y}",
+          "notes": "Award date printed as {date}"
+        }
+      },
+      {
+        "name": "degree awarded (ug)",
+        "pattern": "^Degrees Awarded\\s+(?P<degree>\\S.*?)\\s+(?P<date>\\d{2}-[A-Z]{3}-\\d{4})$",
+        "in_section": [
+          "ug",
+          "ug_curr",
+          "ug_comm",
+          "ug_deg",
+          "ug_minor"
+        ],
+        "action": "start_program",
+        "section": "ug_deg",
+        "set": {
+          "name": "{degree}",
+          "credential_type": "degree",
+          "degree_name": "{degree}",
+          "degree_level": "{degree|degree_level}",
+          "academic_level": "Undergraduate",
+          "status": "awarded",
+          "date_awarded": "{date|date:%d-%b-%Y}",
+          "notes": "Award date printed as {date}"
+        }
+      },
+      {
+        "name": "degree college",
+        "pattern": "^College\\s*:\\s*(?P<v>\\S.*?)$",
+        "in_section": [
+          "grad_deg",
+          "grad_deg_ms",
+          "ug_deg"
+        ],
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "college_or_school": "{v}"
+        }
+      },
+      {
+        "name": "degree department",
+        "pattern": "^Department\\s*:\\s*(?P<v>\\S.*?)$",
+        "in_section": [
+          "grad_deg",
+          "grad_deg_ms",
+          "ug_deg"
+        ],
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "department": "{v}"
+        }
+      },
+      {
+        "name": "degree first major",
+        "pattern": "^Major\\s*:\\s*(?P<v>\\S.*?)$",
+        "in_section": [
+          "grad_deg",
+          "grad_deg_ms",
+          "ug_deg"
+        ],
+        "requires": [
+          "program"
+        ],
+        "when_empty": "field_of_study",
+        "action": "program",
+        "set": {
+          "field_of_study": "{v}"
+        }
+      },
+      {
+        "name": "degree additional major",
+        "pattern": "^Major\\s*:\\s*(?P<v>\\S.*?)$",
+        "in_section": [
+          "grad_deg",
+          "grad_deg_ms",
+          "ug_deg"
+        ],
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "additional_fields": "{v} (Major)"
+        }
+      },
+      {
+        "name": "degree concentration/option",
+        "pattern": "^(?P<label>(?:Opt|Maj|Min)/Concentration|Concentration|Option|Emphasis|Track|Specialization)\\s*:\\s*(?P<v>\\S.*?)$",
+        "in_section": [
+          "grad_deg",
+          "grad_deg_ms",
+          "ug_deg"
+        ],
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "additional_fields": "{v} ({label})"
+        }
+      },
+      {
+        "name": "minor (grad)",
+        "pattern": "^Minor\\s*:\\s*(?P<v>(?:[A-Z0-9]{2,6}\\s+-\\s+)?(?P<field>\\S.*?))$",
+        "in_section": [
+          "grad_deg",
+          "grad_deg_ms",
+          "grad_minor"
+        ],
+        "requires": [
+          "program"
+        ],
+        "action": "start_program",
+        "section": "grad_minor",
+        "set": {
+          "name": "{v}",
+          "credential_type": "minor",
+          "field_of_study": "{field}",
+          "college_or_school": "{@program.college_or_school}",
+          "academic_level": "Graduate",
+          "status": "awarded",
+          "date_awarded": "{@program.date_awarded}",
+          "notes": "Printed as Minor with {@program.degree_name} (Major: {@program.field_of_study}) awarded {@program.date_awarded}"
+        }
+      },
+      {
+        "name": "minor (ug)",
+        "pattern": "^Minor\\s*:\\s*(?P<v>(?:[A-Z0-9]{2,6}\\s+-\\s+)?(?P<field>\\S.*?))$",
+        "in_section": [
+          "ug_deg",
+          "ug_minor"
+        ],
+        "requires": [
+          "program"
+        ],
+        "action": "start_program",
+        "section": "ug_minor",
+        "set": {
+          "name": "{v}",
+          "credential_type": "minor",
+          "field_of_study": "{field}",
+          "college_or_school": "{@program.college_or_school}",
+          "academic_level": "Undergraduate",
+          "status": "awarded",
+          "date_awarded": "{@program.date_awarded}",
+          "notes": "Printed as Minor with {@program.degree_name} (Major: {@program.field_of_study}) awarded {@program.date_awarded}"
+        }
+      },
+      {
+        "name": "master's thesis heading (master's degree listed)",
+        "pattern": "^Master['’]s Thesis$",
+        "in_section": [
+          "grad_deg_ms"
+        ],
+        "action": "ignore",
+        "section": "grad_thesis_ms"
+      },
+      {
+        "name": "master's thesis heading",
+        "pattern": "^Master['’]s Thesis$",
+        "in_section": [
+          "grad",
+          "grad_curr",
+          "grad_comm",
+          "grad_deg",
+          "grad_diss",
+          "grad_diss2"
+        ],
+        "action": "ignore",
+        "section": "grad_thesis"
+      },
+      {
+        "name": "doctoral dissertation heading",
+        "pattern": "^Doctoral Dissertation$",
+        "in_section": [
+          "grad",
+          "grad_deg",
+          "grad_deg_ms",
+          "grad_thesis",
+          "grad_thesis_ms",
+          "grad_thesis2"
+        ],
+        "action": "ignore",
+        "section": "grad_diss"
+      },
+      {
+        "name": "master's thesis title (no master's degree listed)",
+        "pattern": "^(?P<t>\\S.*)$",
+        "in_section": "grad_thesis",
+        "action": "remark",
+        "section": "grad_thesis2",
+        "text": "Graduate record lists Master's Thesis: {t} (no master's degree is listed)"
+      },
+      {
+        "name": "master's thesis title",
+        "pattern": "^(?P<t>\\S.*)$",
+        "in_section": "grad_thesis_ms",
+        "action": "remark",
+        "section": "grad_thesis2",
+        "text": "Master's Thesis: {t}"
+      },
+      {
+        "name": "master's thesis title continued",
+        "pattern": "^(?!(?:^Latest Curriculum$)|(?:^Latest Curriculum$)|(?:^Comments:$)|(?:^Degrees Awarded\\s+(?:\\S.*?)\\s+(?:\\d{2}-[A-Z]{3}-\\d{4})$)|(?:^Degrees Awarded\\s+(?:\\S.*?)\\s+(?:\\d{2}-[A-Z]{3}-\\d{4})$)|(?:^Minor\\s*:\\s*(?:(?:[A-Z0-9]{2,6}\\s+-\\s+)?(?:\\S.*?))$)|(?:^Master['’]s Thesis$)|(?:^TRANSFER CREDIT ACCEPTED BY THE INSTITUTION:?$)|(?:^Transfer Information continued:?$)|(?:^INSTITUTION CREDIT:?$)|(?:^INSTITUTION CREDIT:?$)|(?:^Institution Information continued:?$)|(?:^\\*+\\s*TRANSCRIPT TOTALS\\s*\\*+$)|(?:^\\*+\\s*TRANSCRIPT TOTALS\\s*\\*+$)|(?:^\\*+\\s*END OF TRANSCRIPT\\s*\\*+$))(?:^(?P<t>\\S.*)$)",
+        "in_section": "grad_thesis2",
+        "action": "remark",
+        "continue": true,
+        "text": "{t}"
+      },
+      {
+        "name": "dissertation title",
+        "pattern": "^(?P<t>\\S.*)$",
+        "in_section": "grad_diss",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "add_note": "Doctoral Dissertation: {t}",
+        "section": "grad_diss2"
+      },
+      {
+        "name": "dissertation title continued",
+        "pattern": "^(?P<t>\\S.*)$",
+        "in_section": "grad_diss2",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "add_note": "{t}"
+      },
+      {
+        "name": "latest curriculum labelled line",
+        "pattern": "^(?!(?:^Minor\\s*:\\s*(?:(?:[A-Z0-9]{2,6}\\s+-\\s+)?(?:\\S.*?))$))(?:^(?P<label>[A-Z][A-Za-z/ ]*?)\\s*:\\s*(?P<v>\\S.*)$)",
+        "in_section": [
+          "grad_curr",
+          "ug_curr"
+        ],
+        "action": "remark",
+        "continue": true,
+        "separator": ", ",
+        "text": "{label}: {v}"
+      },
+      {
+        "name": "latest curriculum program line",
+        "pattern": "^(?!(?:^Minor\\s*:\\s*(?:(?:[A-Z0-9]{2,6}\\s+-\\s+)?(?:\\S.*?))$))(?:^(?!(?:^Latest Curriculum$)|(?:^Latest Curriculum$)|(?:^Doctoral Dissertation$)|(?:^TRANSFER CREDIT ACCEPTED BY THE INSTITUTION:?$)|(?:^Transfer Information continued:?$)|(?:^INSTITUTION CREDIT:?$)|(?:^INSTITUTION CREDIT:?$)|(?:^Institution Information continued:?$)|(?:^\\*+\\s*TRANSCRIPT TOTALS\\s*\\*+$)|(?:^\\*+\\s*TRANSCRIPT TOTALS\\s*\\*+$)|(?:^\\*+\\s*END OF TRANSCRIPT\\s*\\*+$))(?:^(?P<d>\\S.*)$))",
+        "in_section": [
+          "grad_curr",
+          "ug_curr"
+        ],
+        "action": "remark",
+        "text": "Latest Curriculum: {d}"
+      },
+      {
+        "name": "comment (honor)",
+        "pattern": "^(?P<n>\\S.*)$",
+        "in_section": [
+          "grad_comm",
+          "ug_comm"
+        ],
+        "action": "honor",
+        "set": {
+          "name": "{n}",
+          "notes": "Listed under Comments"
+        }
+      },
+      {
+        "name": "transfer credit heading (grad)",
+        "pattern": "^TRANSFER CREDIT ACCEPTED BY THE INSTITUTION:?$",
+        "in_section": [
+          "grad",
+          "grad_tr",
+          "grad_inst"
+        ],
+        "action": "ignore",
+        "section": "grad_tr"
+      },
+      {
+        "name": "transfer credit heading (ug)",
+        "pattern": "^TRANSFER CREDIT ACCEPTED BY THE INSTITUTION:?$",
+        "in_section": [
+          "ug",
+          "ug_tr",
+          "ug_inst"
+        ],
+        "action": "ignore",
+        "section": "ug_tr"
+      },
+      {
+        "name": "transfer continued (grad)",
+        "pattern": "^Transfer Information continued:?$",
+        "in_section": [
+          "grad",
+          "grad_tr",
+          "grad_inst"
+        ],
+        "action": "ignore",
+        "section": "grad_tr"
+      },
+      {
+        "name": "transfer continued (ug)",
+        "pattern": "^Transfer Information continued:?$",
+        "in_section": [
+          "ug",
+          "ug_tr",
+          "ug_inst"
+        ],
+        "action": "ignore",
+        "section": "ug_tr"
+      },
+      {
+        "name": "institution credit heading (grad)",
+        "pattern": "^INSTITUTION CREDIT:?$",
+        "in_section": [
+          "grad",
+          "grad_tr",
+          "grad_inst"
+        ],
+        "action": "ignore",
+        "section": "grad_inst"
+      },
+      {
+        "name": "institution credit heading (ug)",
+        "pattern": "^INSTITUTION CREDIT:?$",
+        "in_section": [
+          "ug",
+          "ug_tr",
+          "ug_inst"
+        ],
+        "action": "ignore",
+        "section": "ug_inst"
+      },
+      {
+        "name": "institution continued (grad)",
+        "pattern": "^Institution Information continued:?$",
+        "in_section": [
+          "grad",
+          "grad_tr",
+          "grad_inst"
+        ],
+        "action": "ignore",
+        "section": "grad_inst"
+      },
+      {
+        "name": "institution continued (ug)",
+        "pattern": "^Institution Information continued:?$",
+        "in_section": [
+          "ug",
+          "ug_tr",
+          "ug_inst"
+        ],
+        "action": "ignore",
+        "section": "ug_inst"
+      },
+      {
+        "name": "transcript totals heading (grad)",
+        "pattern": "^\\*+\\s*TRANSCRIPT TOTALS\\s*\\*+$",
+        "in_section": [
+          "grad",
+          "grad_tr",
+          "grad_inst"
+        ],
+        "action": "ignore",
+        "section": "grad_totals"
+      },
+      {
+        "name": "transcript totals heading (ug)",
+        "pattern": "^\\*+\\s*TRANSCRIPT TOTALS\\s*\\*+$",
+        "in_section": [
+          "ug",
+          "ug_tr",
+          "ug_inst"
+        ],
+        "action": "ignore",
+        "section": "ug_totals"
+      },
+      {
+        "name": "transcript totals column labels",
+        "pattern": "^Earned Hrs\\s+GPA Hrs\\s+Points\\s+GPA$",
+        "in_section": [
+          "grad_totals",
+          "ug_totals"
+        ],
+        "action": "ignore"
+      },
+      {
+        "name": "transcript totals row (grad)",
+        "pattern": "^(?P<label>TOTAL INSTITUTION|TOTAL TRANSFER|OVERALL)\\s+(?P<earned>\\d+\\.\\d+)\\s+(?P<gh>\\d+\\.\\d+)\\s+(?P<qp>\\d+\\.\\d+)\\s+(?P<gpa>\\d+\\.\\d+)$",
+        "in_section": "grad_totals",
+        "action": "start_summary",
+        "set": {
+          "label": "{label}",
+          "scope": {
+            "template": "{label}",
+            "map": "summary_scopes"
+          },
+          "academic_level": "Graduate",
+          "earned": "{earned|number}",
+          "gpa_hours": "{gh|number}",
+          "quality_points": "{qp|number}",
+          "gpa": "{gpa|number}"
+        }
+      },
+      {
+        "name": "transcript totals row (ug)",
+        "pattern": "^(?P<label>TOTAL INSTITUTION|TOTAL TRANSFER|OVERALL)\\s+(?P<earned>\\d+\\.\\d+)\\s+(?P<gh>\\d+\\.\\d+)\\s+(?P<qp>\\d+\\.\\d+)\\s+(?P<gpa>\\d+\\.\\d+)$",
+        "in_section": "ug_totals",
+        "action": "start_summary",
+        "set": {
+          "label": "{label}",
+          "scope": {
+            "template": "{label}",
+            "map": "summary_scopes"
+          },
+          "academic_level": "Undergraduate",
+          "earned": "{earned|number}",
+          "gpa_hours": "{gh|number}",
+          "quality_points": "{qp|number}",
+          "gpa": "{gpa|number}"
+        }
+      },
+      {
+        "name": "end of transcript",
+        "pattern": "^\\*+\\s*END OF TRANSCRIPT\\s*\\*+$",
+        "action": "ignore",
+        "section": "end"
+      },
+      {
+        "name": "institution term (grad)",
+        "pattern": "^(?P<season>Spring|Summer|Fall|Winter)\\s+(?P<year>\\d{4})$",
+        "in_section": "grad_inst",
+        "action": "start_term",
+        "set": {
+          "name": "{season} {year}",
+          "season": "{season|lower}",
+          "year": "{year|int}",
+          "term_type": "institutional",
+          "institution": "Oklahoma State University",
+          "academic_level": "Graduate"
+        }
+      },
+      {
+        "name": "institution term (ug)",
+        "pattern": "^(?P<season>Spring|Summer|Fall|Winter)\\s+(?P<year>\\d{4})$",
+        "in_section": "ug_inst",
+        "action": "start_term",
+        "set": {
+          "name": "{season} {year}",
+          "season": "{season|lower}",
+          "year": "{year|int}",
+          "term_type": "institutional",
+          "institution": "Oklahoma State University",
+          "academic_level": "Undergraduate"
+        }
+      },
+      {
+        "name": "transfer term with season (grad)",
+        "pattern": "^(?P<season>Spring|Summer|Fall|Winter)\\s+(?P<year>\\d{4})\\s+(?P<school>\\S.*)$",
+        "in_section": "grad_tr",
+        "action": "start_term",
+        "set": {
+          "name": "{season} {year}",
+          "season": "{season|lower}",
+          "year": "{year|int}",
+          "term_type": "transfer",
+          "institution": "{school}",
+          "academic_level": "Graduate"
+        }
+      },
+      {
+        "name": "transfer term with season (ug)",
+        "pattern": "^(?P<season>Spring|Summer|Fall|Winter)\\s+(?P<year>\\d{4})\\s+(?P<school>\\S.*)$",
+        "in_section": "ug_tr",
+        "action": "start_term",
+        "set": {
+          "name": "{season} {year}",
+          "season": "{season|lower}",
+          "year": "{year|int}",
+          "term_type": "transfer",
+          "institution": "{school}",
+          "academic_level": "Undergraduate"
+        }
+      },
+      {
+        "name": "transfer term with term code (grad)",
+        "pattern": "^(?P<code>\\d{6})\\s+(?P<school>\\S.*)$",
+        "in_section": "grad_tr",
+        "action": "start_term",
+        "set": {
+          "name": "{code}",
+          "term_type": "transfer",
+          "institution": "{school}",
+          "academic_level": "Graduate"
+        }
+      },
+      {
+        "name": "transfer term with term code (ug)",
+        "pattern": "^(?P<code>\\d{6})\\s+(?P<school>\\S.*)$",
+        "in_section": "ug_tr",
+        "action": "start_term",
+        "set": {
+          "name": "{code}",
+          "term_type": "transfer",
+          "institution": "{school}",
+          "academic_level": "Undergraduate"
+        }
+      },
+      {
+        "name": "institution course row",
+        "pattern": "^(?P<subject>[A-Z][A-Z&]{0,4}|-{2,5})\\s+(?P<number>[0-9][0-9A-Z-]{2,4})\\s+(?P<title>\\S.*?)\\s+(?P<credits>\\d+\\.\\d{2})\\s+(?P<grade>(?:(?P<gtype>PA|DEV|CBE)-)?(?:[A-D]|F!?|NP|P|ST|SR|S|UR|U|I|AU|AW|W|N|X|R)\\*{0,2})\\s+(?P<points>\\d+\\.\\d{2})(?:\\s+(?P<r>(?P<rx>E)|[IA]))?$",
+        "in_section": [
+          "grad_inst",
+          "ug_inst"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{subject} {number}",
+          "title": "{title}",
+          "credits": "{credits|number}",
+          "grade": "{grade}",
+          "quality_points": "{points|number}",
+          "notes": {
+            "templates": [
+              "R: {r} ({r|map:repeat_codes}); {gtype|map:grade_types}",
+              "R: {r} ({r|map:repeat_codes})",
+              "{gtype|map:grade_types}"
+            ]
+          }
+        },
+        "status_from_grade": {
+          "patterns": [
+            {
+              "pattern": "(?:PA|DEV|CBE)-P",
+              "status": "completed",
+              "flags": [
+                "pass_fail",
+                "excluded_from_gpa"
+              ]
+            },
+            {
+              "pattern": "(?:PA|DEV|CBE)-(?:NP|F!?|U)\\*{0,2}",
+              "status": "failed",
+              "flags": [
+                "excluded_from_gpa"
+              ]
+            },
+            {
+              "pattern": "(?:PA|DEV|CBE)-.+",
+              "status": "completed",
+              "flags": [
+                "excluded_from_gpa"
+              ]
+            },
+            {
+              "pattern": "(?:F!?|NP|U)\\*{1,2}",
+              "status": "failed",
+              "flags": [
+                "excluded_from_gpa"
+              ]
+            },
+            {
+              "pattern": ".+\\*{1,2}",
+              "status": "completed",
+              "flags": [
+                "excluded_from_gpa"
+              ]
+            }
+          ],
+          "table": {
+            "F": "failed",
+            "F!": "failed",
+            "NP": "failed",
+            "U": "failed",
+            "UR": "failed",
+            "I": "incomplete",
+            "W": "withdrawn",
+            "AW": "withdrawn",
+            "AU": "audit",
+            "N": "other",
+            "X": "in_progress",
+            "R": "in_progress",
+            "IN PROGRESS": "in_progress"
+          },
+          "flags": {
+            "P": [
+              "pass_fail"
+            ],
+            "NP": [
+              "pass_fail"
+            ],
+            "I": [
+              "incomplete"
+            ],
+            "IN PROGRESS": [
+              "in_progress"
+            ]
+          },
+          "default": "completed"
+        },
+        "then": [
+          {
+            "action": "course",
+            "continue": true,
+            "set": {
+              "flags": {
+                "template": "{r}",
+                "map": "repeat_flags"
+              }
+            }
+          },
+          {
+            "action": "course",
+            "continue": true,
+            "set": {
+              "flags": {
+                "template": "{rx}",
+                "map": "repeat_excluded_flags"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "institution in-progress course row",
+        "pattern": "^(?P<subject>[A-Z][A-Z&]{0,4}|-{2,5})\\s+(?P<number>[0-9][0-9A-Z-]{2,4})\\s+(?P<title>\\S.*?)\\s+(?P<credits>\\d+\\.\\d{2})\\s+(?P<grade>IN PROGRESS)$",
+        "in_section": [
+          "grad_inst",
+          "ug_inst"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{subject} {number}",
+          "title": "{title}",
+          "credits": "{credits|number}",
+          "grade": "{grade}"
+        },
+        "status_from_grade": {
+          "table": {
+            "IN PROGRESS": "in_progress"
+          },
+          "flags": {
+            "IN PROGRESS": [
+              "in_progress"
+            ]
+          },
+          "default": "in_progress"
+        }
+      },
+      {
+        "name": "transfer course row",
+        "pattern": "^(?P<subject>[A-Z][A-Z&]{0,4}|-{2,5})\\s+(?P<number>[0-9][0-9A-Z-]{2,4})\\s+(?P<title>\\S.*?)\\s+(?P<credits>\\d+\\.\\d{2})\\s+(?P<grade>(?:(?P<gtype>PA|DEV|CBE)-)?(?:[A-D]|F!?|NP|P|ST|SR|S|UR|U|I|AU|AW|W|N|X|R)\\*{0,2})(?:\\s+(?P<r>(?P<rx>E)|[IA]))?$",
+        "in_section": [
+          "grad_tr",
+          "ug_tr"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{subject} {number}",
+          "title": "{title}",
+          "credits": "{credits|number}",
+          "grade": "{grade}",
+          "notes": {
+            "templates": [
+              "R: {r} ({r|map:repeat_codes}); {gtype|map:grade_types}",
+              "R: {r} ({r|map:repeat_codes})",
+              "{gtype|map:grade_types}"
+            ]
+          }
+        },
+        "status_from_grade": {
+          "patterns": [
+            {
+              "pattern": "(?:PA|DEV|CBE)-P",
+              "status": "completed",
+              "flags": [
+                "pass_fail",
+                "excluded_from_gpa"
+              ]
+            },
+            {
+              "pattern": "(?:PA|DEV|CBE)-(?:NP|F!?|U)\\*{0,2}",
+              "status": "failed",
+              "flags": [
+                "excluded_from_gpa"
+              ]
+            },
+            {
+              "pattern": "(?:PA|DEV|CBE)-.+",
+              "status": "completed",
+              "flags": [
+                "excluded_from_gpa"
+              ]
+            },
+            {
+              "pattern": "(?:F!?|NP|U)\\*{1,2}",
+              "status": "failed",
+              "flags": [
+                "excluded_from_gpa"
+              ]
+            },
+            {
+              "pattern": ".+\\*{1,2}",
+              "status": "completed",
+              "flags": [
+                "excluded_from_gpa"
+              ]
+            }
+          ],
+          "table": {
+            "F": "failed",
+            "F!": "failed",
+            "NP": "failed",
+            "U": "failed",
+            "UR": "failed",
+            "I": "incomplete",
+            "W": "withdrawn",
+            "AW": "withdrawn",
+            "AU": "audit",
+            "N": "other",
+            "X": "in_progress",
+            "R": "in_progress"
+          },
+          "flags": {
+            "P": [
+              "pass_fail"
+            ],
+            "NP": [
+              "pass_fail"
+            ],
+            "I": [
+              "incomplete"
+            ]
+          },
+          "default": "completed"
+        },
+        "then": [
+          {
+            "action": "course",
+            "continue": true,
+            "set": {
+              "flags": "transfer"
+            }
+          },
+          {
+            "action": "course",
+            "continue": true,
+            "set": {
+              "flags": {
+                "template": "{r}",
+                "map": "repeat_flags"
+              }
+            }
+          },
+          {
+            "action": "course",
+            "continue": true,
+            "set": {
+              "flags": {
+                "template": "{rx}",
+                "map": "repeat_excluded_flags"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "term totals",
+        "pattern": "^Ehrs:\\s*(?P<earned>\\d+\\.\\d+)\\s+GPA-Hrs:\\s*(?P<gh>\\d+\\.\\d+)\\s+QPts:\\s*(?P<qp>\\d+\\.\\d+)\\s+GPA:\\s*(?P<gpa>\\d+\\.\\d+)$",
+        "in_section": [
+          "grad_tr",
+          "grad_inst",
+          "ug_tr",
+          "ug_inst"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "set": {
+          "scope": "term",
+          "earned": "{earned|number}",
+          "gpa_hours": "{gh|number}",
+          "quality_points": "{qp|number}",
+          "gpa": "{gpa|number}"
+        }
+      },
+      {
+        "name": "in progress credits",
+        "pattern": "^In Progress Credits\\s+(?P<v>\\d+\\.\\d+)$",
+        "in_section": [
+          "grad_inst",
+          "ug_inst"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "set": {
+          "label": "In Progress Credits",
+          "scope": "term",
+          "other_values": {
+            "object": {
+              "label": "In Progress Credits",
+              "value": "{v|number}"
+            }
+          }
+        }
+      },
+      {
+        "name": "in progress work heading",
+        "pattern": "^IN PROGRESS WORK$",
+        "in_section": [
+          "grad_inst",
+          "ug_inst"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "set": {
+          "notes": "{line}"
+        }
+      },
+      {
+        "name": "term honor",
+        "pattern": "^(?:Dean|President|Provost)['’]s (?:Honor Roll|List)$",
+        "in_section": [
+          "grad_inst",
+          "ug_inst"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "set": {
+          "honors": "{line}"
+        }
+      },
+      {
+        "name": "academic standing",
+        "pattern": "^(?:Academic (?:Notice|Probation|Suspension|Warning|Dismissal)|Good Standing)$",
+        "in_section": [
+          "grad_inst",
+          "ug_inst"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "set": {
+          "academic_standing": "{line}"
+        }
+      },
+      {
+        "name": "course annotation under a course row",
+        "pattern": "^(?P<note>[A-Z][a-z]{3,})$",
+        "in_section": [
+          "grad_inst",
+          "ug_inst",
+          "grad_tr",
+          "ug_tr"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "continue": true,
+        "set": {
+          "notes": "{note}"
+        }
+      }
+    ]
+  },
+  "grading_scale": [
+    {
+      "grade": "A",
+      "points": 4,
+      "description": "Excellent",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "B",
+      "points": 3,
+      "description": "Good",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "C",
+      "points": 2,
+      "description": "Average",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "D",
+      "points": 1,
+      "description": "Below Average",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "F",
+      "points": 0,
+      "description": "Failure",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "F!",
+      "points": 0,
+      "description": "Academic Integrity Violation",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "P",
+      "points": null,
+      "description": "Pass",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "NP",
+      "points": null,
+      "description": "No Pass",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "S or ST",
+      "points": null,
+      "description": "Satisfactory",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "U",
+      "points": null,
+      "description": "Unsatisfactory",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "SR",
+      "points": null,
+      "description": "Satisfactory Research",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "UR",
+      "points": null,
+      "description": "Unsatisfactory Research",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "CBE-[GRADE]",
+      "points": null,
+      "description": "Credit by Exam/Prior Learning",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "I",
+      "points": null,
+      "description": "Incomplete (excluded from earned hours and GPA)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "AU",
+      "points": null,
+      "description": "Audit (excluded from earned hours and GPA)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "DEV-[GRADE]",
+      "points": null,
+      "description": "Developmental/Remedial Course (excluded from earned hours and GPA)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "PA-[GRADE]",
+      "points": null,
+      "description": "Performance/Activity (Leisure) Course (excluded from earned hours and GPA)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "W",
+      "points": null,
+      "description": "Withdrawal (excluded from earned hours and GPA)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "N",
+      "points": null,
+      "description": "Grade Not Reported (excluded from earned hours and GPA)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "AW",
+      "points": null,
+      "description": "Administrative Withdrawal (excluded from earned hours and GPA)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "X OR R",
+      "points": null,
+      "description": "Research in Progress (excluded from earned hours and GPA)",
+      "counts_in_gpa": false
+    }
+  ],
+  "notes": [
+    "Read by App-parser (Oklahoma State University official transcript layout, no AI). The cover letter and legend pages are not read line by line; the legend's grading notes are added as one remark. Latest Curriculum blocks are recorded as remarks rather than merged into the matching awarded degree; when a level's degrees block ends with a degree, that degree gets a note pointing to the Latest Curriculum remark. Degree notes keep the award date as printed. Courses with repeat code E are flagged excluded_from_gpa."
+  ],
+  "learned": {
+    "date": "2026-10-28",
+    "by": "claude-opus-5-5",
+    "tries": 3,
+    "verified_on": "1 transcript (App-parser reproduced Claude's reading exactly)",
+    "repaired": "2026-10-30 by hand: free-text rules exclude the headings the heading test found they would take; output on the samples unchanged"
+  }
+}

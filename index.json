@@ -1,0 +1,78 @@
+{
+  "library_format": 1,
+  "published": "2026-11-07T19:49:02Z",
+  "layouts": [
+    {
+      "file": "any-institution--two-column-units-qpa-record.json",
+      "sha256": "f984c0b142ca491c4940aad02499f1549b7bba58645987e1551d030809874ebe",
+      "content_sha256": "2074efdad35fe11607f8897def225a9b9cd8f1fb3dcbe5833abe05dc076e809e",
+      "bytes": 13077,
+      "name": "Two-column student record with Units Passed / Units Factored / Final QPA totals (Date Printed / Birth Date/Month header)",
+      "institution": null,
+      "recipe_format": 1
+    },
+    {
+      "file": "elon-university--academic-transcript.json",
+      "sha256": "3a62b999f4985e639f300d59acba21e2ff37fe95afc777c0c82fe384932312f0",
+      "content_sha256": "f0f22624994794f4be15b3db4bcffa99e53c2fcc9fe5a1ef970812e7367842c4",
+      "bytes": 18335,
+      "name": "Elon University - Academic Transcript (two-column Courier record with ELON UNIVERSITY watermark)",
+      "institution": "Elon University",
+      "recipe_format": 1
+    },
+    {
+      "file": "forsyth-technical-community-college--academic-transcript.json",
+      "sha256": "03eb23b571585582b034f8db272c39f9fdeab644c45fb67f7126005209d89cd1",
+      "content_sha256": "b1a3ff2827eca98ff2cd5bc81c69b97e6a7a50fd0c6cabeb8bb9984444e8a055",
+      "bytes": 12950,
+      "name": "Forsyth Technical Community College - Academic Transcript",
+      "institution": "Forsyth Technical Community College",
+      "recipe_format": 1
+    },
+    {
+      "file": "indiana-university--official-record.json",
+      "sha256": "92484b82670b0de7921ed366626e5a363f869ce0b401ecee2f117fa3f6692a14",
+      "content_sha256": "f7f9fc93c77cb0d1f852f237a0a2727f9543b47051a909241d9e0d9743dc8e24",
+      "bytes": 13593,
+      "name": "Indiana University - Official Record (records from before Fall 2004)",
+      "institution": "Indiana University",
+      "recipe_format": 1
+    },
+    {
+      "file": "oklahoma-state-university--official-transcript.json",
+      "sha256": "6f7ef7a994b2172db14f6edddb789d318f5bd8b94646cc0c61ae6c571a7f2df7",
+      "content_sha256": "db9c0ea7b5508ff420ae9a93dc3770c08be829f4f52b503e1c2ffb17d6499c4d",
+      "bytes": 41235,
+      "name": "Oklahoma State University - Official Transcript (Banner, two-column Courier record)",
+      "institution": "Oklahoma State University",
+      "recipe_format": 1
+    },
+    {
+      "file": "university-of-michigan--academic-transcript.json",
+      "sha256": "79926cbefde3d1885df01df6287a07f97d52b86f6db76f9f08fdab8e693d772e",
+      "content_sha256": "931e3f1e59b14099e92d173019b87849beb21b60dbe417c677cbe877baad80b5",
+      "bytes": 50395,
+      "name": "University of Michigan - Academic Transcript (landscape, two-column record)",
+      "institution": "University of Michigan",
+      "recipe_format": 1
+    },
+    {
+      "file": "university-of-missouri-columbia--official-transcript.json",
+      "sha256": "99f2f8ed0c4073d4622dfe78af164d3df9ba70f7b04e5ff27a8f5e2b5a9ae079",
+      "content_sha256": "40e534ce6fc02ec77bd0109905977d1e5eee5dfaffda0a5c56cc8c7a42731272",
+      "bytes": 22194,
+      "name": "University of Missouri - Columbia - Official Transcript (two-column record pages with legend pages)",
+      "institution": "University of Missouri – Columbia",
+      "recipe_format": 1
+    },
+    {
+      "file": "volunteer-state-community-college--academic-transcript.json",
+      "sha256": "ca526be9987d603519f31004887e0706a724456a727d0f1d99a3463cb2881662",
+      "content_sha256": "8b20d4e798a6a65fb37904a9b5731e37f80b6cf1041306d60e4129e4828be1f7",
+      "bytes": 50176,
+      "name": "Volunteer State Community College - Academic Transcript (two-column Courier layout)",
+      "institution": "Volunteer State Community College",
+      "recipe_format": 1
+    }
+  ]
+}

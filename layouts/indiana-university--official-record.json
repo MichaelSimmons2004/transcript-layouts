@@ -1,0 +1,527 @@
+{
+  "recipe_format": 1,
+  "id": "indiana-university--official-record",
+  "name": "Indiana University - Official Record (records from before Fall 2004)",
+  "institution": "Indiana University",
+  "description": "IU's older 'Official Record' layout: two-column record pages split by a vertical rule; term headings like '<SCHOOL> 2ND SEM YYYY-YY'; course rows 'TITLE  DEPT X123  3.0  A'; 'SEM HRS ... PTS ... GPA ... HRS PASS ...' term lines; asterisk-boxed degree blocks; per-level GPA summaries. Built and tested on one sample record.",
+  "layout": {
+    "type": "columns_split_by_vertical_rule",
+    "min_rule_height": 200,
+    "remove": [
+      "(cid:10)"
+    ]
+  },
+  "detect": {
+    "header_contains": [
+      "OFFICIAL RECORD",
+      "UNIVERSITY ID"
+    ]
+  },
+  "constants": {
+    "document.title": "Official Record",
+    "document.is_official": true,
+    "institution.name": "Indiana University"
+  },
+  "fields": [
+    {
+      "field": "student.name_as_printed",
+      "pattern": "^([A-Z' -]+,\\s*[A-Z' -]+)$"
+    },
+    {
+      "field": "student.name",
+      "pattern": "^([A-Z' -]+,\\s*[A-Z' -]+)$",
+      "value": "{1|name_last_first}"
+    },
+    {
+      "field": "student.student_id",
+      "pattern": "UNIVERSITY ID:\\s*(\\d+)"
+    },
+    {
+      "field": "student.date_of_birth",
+      "pattern": "BIRTHDATE:\\s*(\\S+)"
+    },
+    {
+      "field": "document.issue_date",
+      "pattern": "P\\s*R\\s*I\\s*N\\s*T\\s*D\\s*A\\s*T\\s*E\\s*:\\s*([\\d\\s-]+?)\\s*$",
+      "value": "{1|nospace|date:%m-%d-%Y}"
+    },
+    {
+      "field": "prior_education[].institution",
+      "pattern": "HIGH SCHOOL:\\s*(.+)$"
+    },
+    {
+      "field": "institution.phone",
+      "source": "text",
+      "pattern": "Transcript Office at Indiana University,\\s*(\\(\\d{3}\\)\\s*\\d{3}-\\d{4})",
+      "value": "{1|squash}"
+    },
+    {
+      "field": "institution.email",
+      "source": "text",
+      "pattern": "\\btranscripts@iu\\.edu\\b",
+      "value": "{0}"
+    },
+    {
+      "field": "institution.website",
+      "source": "text",
+      "pattern": "\\btranscripts\\.iu\\.edu\\b",
+      "value": "{0}"
+    },
+    {
+      "field": "institution.issuing_office",
+      "source": "text",
+      "pattern": "OFFICE OF THE REGISTRAR",
+      "value": "Office of the Registrar"
+    }
+  ],
+  "required": [
+    "student.name_as_printed",
+    "student.student_id"
+  ],
+  "tables": {
+    "degree_abbreviations": {
+      "B. A.": "Bachelor of Arts",
+      "B. S.": "Bachelor of Science",
+      "M. A.": "Master of Arts",
+      "M. S.": "Master of Science"
+    },
+    "term_kinds": {
+      "SEM": "Semester",
+      "SUM": "Summer"
+    },
+    "term_seasons": {
+      "SUM 1ST": "summer",
+      "SUM 2ND": "summer",
+      "SEM 1ST": "fall",
+      "SEM 2ND": "spring"
+    }
+  },
+  "lines": {
+    "stop": [
+      "^---END OF RECORD---$"
+    ],
+    "ignore": [
+      "^(RECORD CONTINUED ON NEXT PAGE|[- ]+)$"
+    ],
+    "rules": [
+      {
+        "name": "degree box: blank line",
+        "prefix": "*",
+        "strip": "* ",
+        "pattern": "^$",
+        "action": "ignore"
+      },
+      {
+        "name": "degree box: start",
+        "prefix": "*",
+        "strip": "* ",
+        "pattern": "INDIANA UNIVERSITY DEGREE",
+        "action": "start_program",
+        "set": {
+          "credential_type": "degree",
+          "status": "awarded"
+        }
+      },
+      {
+        "name": "degree box: campus",
+        "prefix": "*",
+        "strip": "* ",
+        "pattern": "^(?P<campus>.+) CAMPUS$",
+        "requires": [
+          "program"
+        ],
+        "action": "institution",
+        "set": {
+          "campus": "{campus|title}"
+        }
+      },
+      {
+        "name": "degree box: date",
+        "prefix": "*",
+        "strip": "* ",
+        "pattern": "^(?P<date>[A-Z]+ \\d{1,2}, \\d{4})$",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "date_awarded": "{date|date:%B %d, %Y}"
+        }
+      },
+      {
+        "name": "degree box: major",
+        "prefix": "*",
+        "strip": "* ",
+        "pattern": "^MAJOR:\\s*(?P<major>.*?)\\s*$",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "field_of_study": "{major|title}"
+        },
+        "set_if_empty": true,
+        "note_if_different": "Printed major: {major}"
+      },
+      {
+        "name": "degree box: degree name",
+        "prefix": "*",
+        "strip": "* ",
+        "pattern": "^(?P<degree>.+?)(?: IN (?P<field>.+))?$",
+        "requires": [
+          "program"
+        ],
+        "when_empty": "degree_name",
+        "action": "program",
+        "set": {
+          "name": "{line}",
+          "degree_name": "{degree|map:degree_abbreviations|title}",
+          "degree_level": "{@degree_name|degree_level}",
+          "field_of_study": "{field|title}"
+        }
+      },
+      {
+        "name": "degree box: other line",
+        "prefix": "*",
+        "strip": "* ",
+        "pattern": ".+",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "add_note": "{line}"
+      },
+      {
+        "name": "GPA summary heading",
+        "pattern": "^(?P<level>UNDERGRADUATE|GRADUATE) GPA SUMMARY$",
+        "action": "start_summary",
+        "assign_level_to_pending_terms": true,
+        "set": {
+          "label": "{line}",
+          "scope": "institutional",
+          "academic_level": "{level|title}"
+        }
+      },
+      {
+        "name": "GPA summary: GPA line",
+        "pattern": "GPA HRS\\s+(?P<gpa_hours>[\\d.]+)\\s+GPA POINTS\\s+(?P<points>[\\d.]+)\\s+GPA\\s+(?P<gpa>[\\d.]+)",
+        "requires": [
+          "summary"
+        ],
+        "action": "summary",
+        "set": {
+          "gpa_hours": "{gpa_hours|number}",
+          "quality_points": "{points|number}",
+          "gpa": "{gpa|number}"
+        },
+        "update_last_program": {
+          "when_empty": "academic_level",
+          "set": {
+            "academic_level": "{@summary.academic_level}",
+            "gpa": "{gpa|number}"
+          }
+        }
+      },
+      {
+        "name": "GPA summary: hours passed",
+        "pattern": "TOTAL I\\.U\\. HRS PASSED\\s+(?P<hrs>[\\d.]+)",
+        "requires": [
+          "summary"
+        ],
+        "action": "summary",
+        "set": {
+          "earned": "{hrs|number}"
+        },
+        "end_summary": true
+      },
+      {
+        "name": "term heading",
+        "pattern": "^(?P<school>.+?)\\s+(?P<ord>1ST|2ND)\\s+(?P<kind>SEM|SUM)\\s+(?P<year>\\d{4})(?:-(?P<year2>\\d{2}))?$",
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "set": {
+          "name": {
+            "templates": [
+              "{ord|lower} {kind|map:term_kinds} {year}-{year2}",
+              "{ord|lower} {kind|map:term_kinds} {year}"
+            ]
+          },
+          "season": {
+            "template": "{kind} {ord}",
+            "map": "term_seasons"
+          },
+          "year": {
+            "calendar_year": {
+              "year": "{year}",
+              "end_year": "{year2}",
+              "season": "{@season}"
+            }
+          },
+          "term_type": "institutional",
+          "institution": "{school}"
+        }
+      },
+      {
+        "name": "course row",
+        "pattern": "^(?P<title>.+?)\\s+(?P<subject>[A-Z]{2,5})\\s+(?P<number>[A-Z]\\d{3})\\s+(?P<credits>\\d+\\.\\d)\\s+(?P<grade>[A-Z]{1,2}[+-]?)$",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{subject} {number}",
+          "title": "{title|title}",
+          "credits": "{credits|number}",
+          "grade": "{grade}"
+        },
+        "status_from_grade": {
+          "patterns": [
+            {
+              "pattern": "[A-D][+-]?X",
+              "status": "completed",
+              "flags": [
+                "repeated"
+              ]
+            }
+          ],
+          "table": {
+            "F": "failed",
+            "WF": "failed",
+            "FX": "failed",
+            "W": "withdrawn",
+            "I": "incomplete",
+            "O": "incomplete",
+            "DF": "incomplete",
+            "E": "incomplete",
+            "R": "in_progress",
+            "NR": "other",
+            "NY": "in_progress",
+            "NC": "no_credit",
+            "AU": "audit"
+          },
+          "flags": {
+            "P": [
+              "pass_fail"
+            ]
+          },
+          "default": "completed"
+        }
+      },
+      {
+        "name": "term totals",
+        "pattern": "^SEM HRS\\s+(?P<gpa_hours>[\\d.]+)\\s+PTS\\s+(?P<points>[\\d.]+)\\s+GPA\\s+(?P<gpa>[\\d.]+)\\s+HRS PASS\\s+(?P<earned>[\\d.]+)$",
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "set": {
+          "label": "{line}",
+          "scope": "term",
+          "earned": "{earned|number}",
+          "gpa_hours": "{gpa_hours|number}",
+          "quality_points": "{points|number}",
+          "gpa": "{gpa|number}"
+        }
+      }
+    ]
+  },
+  "grading_scale": [
+    {
+      "grade": "A+",
+      "points": 4.0,
+      "description": null,
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "A",
+      "points": 4.0,
+      "description": null,
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "A-",
+      "points": 3.7,
+      "description": null,
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "B+",
+      "points": 3.3,
+      "description": null,
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "B",
+      "points": 3.0,
+      "description": null,
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "B-",
+      "points": 2.7,
+      "description": null,
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "C+",
+      "points": 2.3,
+      "description": null,
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "C",
+      "points": 2.0,
+      "description": null,
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "C-",
+      "points": 1.7,
+      "description": null,
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "D+",
+      "points": 1.3,
+      "description": null,
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "D",
+      "points": 1.0,
+      "description": null,
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "D-",
+      "points": 0.7,
+      "description": null,
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "F",
+      "points": 0.0,
+      "description": "Failing",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "WF",
+      "points": 0.0,
+      "description": "Withdrawn-Failing (discontinued First Semester 1977-78)",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "AU",
+      "points": null,
+      "description": "Audit, no credit (discontinued 1965)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "AX-DX",
+      "points": null,
+      "description": "Graded course (including plus and minus grades) subsequently retaken under the Extended-X Policy (effective Fall 1994 through Fall 2021)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "CF",
+      "points": null,
+      "description": "Credited on Certificate (discontinued 1965)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "DF",
+      "points": null,
+      "description": "Deferred (discontinued 1965; treated as Incomplete)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "E",
+      "points": null,
+      "description": "Conditional (discontinued 1965; treated as Incomplete)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "EX",
+      "points": null,
+      "description": "Exemption (discontinued 1965)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "FX",
+      "points": null,
+      "description": "Course failed and subsequently retaken under the FX or Extended-X Policy",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "I",
+      "points": null,
+      "description": "Incomplete",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "NC",
+      "points": null,
+      "description": "No Credit",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "NR",
+      "points": null,
+      "description": "No Report Submitted by Instructor",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "NY",
+      "points": null,
+      "description": "Enrollment in a special program; credit shown as an additional entry when earned",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "O",
+      "points": null,
+      "description": "Incomplete in a course taught through Purdue University",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "P",
+      "points": null,
+      "description": "Passed (Pass/Fail Option)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "R",
+      "points": null,
+      "description": "Deferred",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "S",
+      "points": null,
+      "description": "Satisfactory",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "T",
+      "points": null,
+      "description": "Credits transferred from another institution",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "W",
+      "points": null,
+      "description": "Withdrawn-Passing",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "X",
+      "points": null,
+      "description": "Passed Without Grade (discontinued 1965); from Fall 2021, retaken/replaced grade",
+      "counts_in_gpa": false
+    }
+  ],
+  "notes": [
+    "Read by App-parser (IU 'Official Record' layout, no AI). Course titles are shown in title case; all other values are as printed."
+  ]
+}

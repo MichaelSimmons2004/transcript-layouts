@@ -1,0 +1,602 @@
+{
+  "recipe_format": 1,
+  "id": "elon-university--academic-transcript",
+  "name": "Elon University - Academic Transcript (two-column Courier record with ELON UNIVERSITY watermark)",
+  "institution": "Elon University",
+  "description": "Elon University transcript: landscape pages with a 14pt 'ELON UNIVERSITY' watermark and bullets interleaved with 8pt Courier body text. Each page has a header (print date 'DD Mon YYYY', 'Page: n of m', student name 'Last, First Middle'). Two record columns with headings 'COURSE  COURSE TITLE  CRD  GRD'. Terms are headed 'Fall YYYY', 'Summer I YYYY', optionally prefixed by a program such as 'XXX/XXX:'. Course rows are 'SUBJ 123  Title  4.00 B+'. Each term ends with 'Term GPA x.xxx Credit n.nn' and 'Cum GPA x.xxx Credit n.nn'. A 'Transfer Work' block ends with 'Transfer Credit:' followed by the school and credit. Degree blocks between dashed rules give 'Degree Received:', 'Date Conferred.:', 'Majors....:', 'Minors:....:' and 'Conferral GPA..:'. Each record ends with 'End of official record.'. The first record is read as undergraduate. A record printed after it, restarting its page numbering, is read as graduate. The last page is a legend page and is skipped. Built and tested on one sample.",
+  "layout": {
+    "type": "columns_at",
+    "split_x": [
+      360
+    ],
+    "header_bottom": 45,
+    "footer_top": 560,
+    "skip_pages_containing": [
+      "Experiential Learning Requirement",
+      "Elon Experiences Transcript"
+    ],
+    "drop_chars": [
+      {
+        "size_at_least": 13
+      },
+      {
+        "font": "ArialMT"
+      }
+    ]
+  },
+  "detect": {
+    "header_contains": [
+      "ELON UNIVERSITY"
+    ],
+    "text_contains": [
+      "COURSE TITLE",
+      "CRD",
+      "GRD"
+    ]
+  },
+  "constants": {
+    "institution.name": "Elon University"
+  },
+  "fields": [
+    {
+      "field": "student.name_as_printed",
+      "pattern": "^\\s*([A-Z][A-Za-z'\\-]*(?:\\s+[A-Za-z'\\-]+)*,\\s*[A-Z][A-Za-z'.\\-]*(?:\\s+[A-Za-z'.\\-]+)*?)(?:\\s+\\d{1,2}/\\d{1,2})?\\s*$",
+      "value": "{1|squash}"
+    },
+    {
+      "field": "student.name",
+      "pattern": "^\\s*([A-Z][A-Za-z'\\-]*(?:\\s+[A-Za-z'\\-]+)*,\\s*[A-Z][A-Za-z'.\\-]*(?:\\s+[A-Za-z'.\\-]+)*?)(?:\\s+\\d{1,2}/\\d{1,2})?\\s*$",
+      "value": "{1|squash|name_last_first}"
+    },
+    {
+      "field": "document.issue_date",
+      "pattern": "\\b(\\d{1,2} (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \\d{4})\\b",
+      "value": "{1|date:%d %b %Y}"
+    },
+    {
+      "field": "institution.phone",
+      "source": "text",
+      "pattern": "Phone:\\s*(\\d{3}-\\d{3}-\\d{4})"
+    },
+    {
+      "field": "institution.email",
+      "source": "text",
+      "pattern": "Email:\\s*(\\S+@\\S+)"
+    },
+    {
+      "field": "institution.website",
+      "source": "text",
+      "pattern": "website:\\s*(www\\.\\S+)"
+    },
+    {
+      "field": "institution.issuing_office",
+      "source": "text",
+      "pattern": "Office of the University Registrar",
+      "value": "Office of the University Registrar"
+    }
+  ],
+  "required": [
+    "student.name_as_printed"
+  ],
+  "tables": {
+    "seasons": {
+      "Fall": "fall",
+      "Winter": "winter",
+      "Spring": "spring",
+      "Summer": "summer"
+    },
+    "totals_scope": {
+      "Term": "term",
+      "Cum": "cumulative"
+    }
+  },
+  "lines": {
+    "ignore": [
+      "^Continued on next Column/Page$",
+      "^-{10,}$",
+      "^COURSE\\s+COURSE\\s+TITLE\\s+CRD\\s+GRD$"
+    ],
+    "rules": [
+      {
+        "name": "end of first record",
+        "pattern": "^End of official record\\.$",
+        "not_in_section": [
+          "grad",
+          "grad_transfer",
+          "grad_transfer_credit"
+        ],
+        "action": "remark",
+        "text": "{line} (printed at the end of the record on its last page)",
+        "section": "grad"
+      },
+      {
+        "name": "end of later record",
+        "pattern": "^End of official record\\.$",
+        "in_section": [
+          "grad",
+          "grad_transfer",
+          "grad_transfer_credit"
+        ],
+        "action": "remark",
+        "continue": true,
+        "text": "and again at the end of the next record on its last page",
+        "section": "grad"
+      },
+      {
+        "name": "transfer heading (undergraduate)",
+        "pattern": "^Transfer Work$",
+        "not_in_section": [
+          "grad",
+          "grad_transfer",
+          "grad_transfer_credit"
+        ],
+        "action": "start_term",
+        "set": {
+          "name": "{line|squash}",
+          "term_type": "transfer",
+          "academic_level": "Undergraduate"
+        },
+        "section": "ug_transfer"
+      },
+      {
+        "name": "transfer heading (graduate)",
+        "pattern": "^Transfer Work$",
+        "in_section": [
+          "grad",
+          "grad_transfer",
+          "grad_transfer_credit"
+        ],
+        "action": "start_term",
+        "set": {
+          "name": "{line|squash}",
+          "term_type": "transfer",
+          "academic_level": "Graduate"
+        },
+        "section": "grad_transfer"
+      },
+      {
+        "name": "transfer credit with school (undergraduate)",
+        "pattern": "^Transfer Credit:\\s*(?P<inst>[A-Z].*?)\\s+(?P<cr>\\d+\\.\\d{2})$",
+        "in_section": "ug_transfer",
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "set": {
+          "institution": "{inst|squash}"
+        },
+        "then": [
+          {
+            "action": "term_totals",
+            "set": {
+              "label": "Transfer Credit: {inst|squash}",
+              "scope": "transfer",
+              "earned": "{cr|number}"
+            }
+          }
+        ],
+        "section": "ug_transfer"
+      },
+      {
+        "name": "transfer credit with school (graduate)",
+        "pattern": "^Transfer Credit:\\s*(?P<inst>[A-Z].*?)\\s+(?P<cr>\\d+\\.\\d{2})$",
+        "in_section": "grad_transfer",
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "set": {
+          "institution": "{inst|squash}"
+        },
+        "then": [
+          {
+            "action": "term_totals",
+            "set": {
+              "label": "Transfer Credit: {inst|squash}",
+              "scope": "transfer",
+              "earned": "{cr|number}"
+            }
+          }
+        ],
+        "section": "grad_transfer"
+      },
+      {
+        "name": "transfer credit label (undergraduate)",
+        "pattern": "^Transfer Credit:$",
+        "in_section": "ug_transfer",
+        "requires": [
+          "term"
+        ],
+        "action": "ignore",
+        "section": "ug_transfer_credit"
+      },
+      {
+        "name": "transfer credit label (graduate)",
+        "pattern": "^Transfer Credit:$",
+        "in_section": "grad_transfer",
+        "requires": [
+          "term"
+        ],
+        "action": "ignore",
+        "section": "grad_transfer_credit"
+      },
+      {
+        "name": "transfer school and credit (undergraduate)",
+        "pattern": "^(?P<inst>[A-Z].*?)\\s+(?P<cr>\\d+\\.\\d{2})$",
+        "in_section": "ug_transfer_credit",
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "set": {
+          "institution": "{inst|squash}"
+        },
+        "then": [
+          {
+            "action": "term_totals",
+            "set": {
+              "label": "Transfer Credit: {inst|squash}",
+              "scope": "transfer",
+              "earned": "{cr|number}"
+            }
+          }
+        ],
+        "section": "ug_transfer"
+      },
+      {
+        "name": "transfer school and credit (graduate)",
+        "pattern": "^(?P<inst>[A-Z].*?)\\s+(?P<cr>\\d+\\.\\d{2})$",
+        "in_section": "grad_transfer_credit",
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "set": {
+          "institution": "{inst|squash}"
+        },
+        "then": [
+          {
+            "action": "term_totals",
+            "set": {
+              "label": "Transfer Credit: {inst|squash}",
+              "scope": "transfer",
+              "earned": "{cr|number}"
+            }
+          }
+        ],
+        "section": "grad_transfer"
+      },
+      {
+        "name": "program session heading (undergraduate)",
+        "pattern": "^(?P<prog>[A-Z][A-Za-z]*(?:/[A-Za-z]+)+):?\\s+(?P<session>[A-Z][A-Za-z]*\\s+Session)$",
+        "not_in_section": [
+          "grad",
+          "grad_transfer",
+          "grad_transfer_credit"
+        ],
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "set": {
+          "name": "{line|squash}",
+          "season": "other",
+          "term_type": "institutional",
+          "institution": "Elon University",
+          "academic_level": "Undergraduate",
+          "program": "{prog}"
+        },
+        "section": "ug"
+      },
+      {
+        "name": "program session heading (graduate)",
+        "pattern": "^(?P<prog>[A-Z][A-Za-z]*(?:/[A-Za-z]+)+):?\\s+(?P<session>[A-Z][A-Za-z]*\\s+Session)$",
+        "in_section": [
+          "grad",
+          "grad_transfer",
+          "grad_transfer_credit"
+        ],
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "set": {
+          "name": "{line|squash}",
+          "season": "other",
+          "term_type": "institutional",
+          "institution": "Elon University",
+          "academic_level": "Graduate",
+          "program": "{prog}"
+        },
+        "section": "grad"
+      },
+      {
+        "name": "term heading (undergraduate)",
+        "pattern": "^(?:(?P<prog>[A-Z][A-Za-z]*(?:/[A-Za-z]+)*):?\\s+)?(?P<season>Fall|Winter|Spring|Summer)(?:\\s+(?P<sess>I{1,3}))?\\s+(?P<year>\\d{4})$",
+        "not_in_section": [
+          "grad",
+          "grad_transfer",
+          "grad_transfer_credit"
+        ],
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "set": {
+          "name": "{line|squash}",
+          "season": "{season|map:seasons}",
+          "year": "{year|int}",
+          "term_type": "institutional",
+          "institution": "Elon University",
+          "academic_level": "Undergraduate",
+          "program": "{prog}"
+        },
+        "section": "ug"
+      },
+      {
+        "name": "term heading (graduate)",
+        "pattern": "^(?:(?P<prog>[A-Z][A-Za-z]*(?:/[A-Za-z]+)*):?\\s+)?(?P<season>Fall|Winter|Spring|Summer)(?:\\s+(?P<sess>I{1,3}))?\\s+(?P<year>\\d{4})$",
+        "in_section": [
+          "grad",
+          "grad_transfer",
+          "grad_transfer_credit"
+        ],
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "set": {
+          "name": "{line|squash}",
+          "season": "{season|map:seasons}",
+          "year": "{year|int}",
+          "term_type": "institutional",
+          "institution": "Elon University",
+          "academic_level": "Graduate",
+          "program": "{prog}"
+        },
+        "section": "grad"
+      },
+      {
+        "name": "term / cumulative totals",
+        "pattern": "^(?P<label>Term|Cum)\\s+GPA\\s+(?P<gpa>\\d+\\.\\d{3})\\s+Credit\\s+(?P<cr>\\d+\\.\\d{2})$",
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "set": {
+          "label": "{label}",
+          "scope": "{label|map:totals_scope}",
+          "earned": "{cr|number}",
+          "gpa": "{gpa|number}"
+        }
+      },
+      {
+        "name": "transfer course row",
+        "pattern": "^(?P<subject>[A-Z]{2,5})\\s+(?P<number>[A-Z0-9]{3,4})\\s+(?P<title>\\S.*?)\\s+(?P<credits>\\d+\\.\\d{2})(?:\\s+(?P<grade>[A-Z]{1,2}[+-]?))?$",
+        "in_section": [
+          "ug_transfer",
+          "grad_transfer"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{subject} {number}",
+          "title": "{title|squash}",
+          "credits": "{credits|number}",
+          "grade": "{grade}",
+          "status": "completed",
+          "flags": "transfer"
+        }
+      },
+      {
+        "name": "course row",
+        "pattern": "^(?P<subject>[A-Z]{2,5})\\s+(?P<number>\\d{3,4}[A-Z]?)\\s+(?P<title>\\S.*?)\\s+(?P<credits>\\d+\\.\\d{2})\\s+(?P<grade>[A-Z]{1,2}[+-]?)$",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{subject} {number}",
+          "title": "{title|squash}",
+          "credits": "{credits|number}",
+          "grade": "{grade}"
+        },
+        "status_from_grade": {
+          "patterns": [
+            {
+              "pattern": "RP",
+              "status": "other",
+              "flags": [
+                "repeated"
+              ]
+            },
+            {
+              "pattern": "W",
+              "status": "withdrawn",
+              "flags": [
+                "withdrawn"
+              ]
+            },
+            {
+              "pattern": "I",
+              "status": "incomplete",
+              "flags": [
+                "incomplete"
+              ]
+            }
+          ],
+          "table": {
+            "F": "failed"
+          },
+          "default": "completed"
+        }
+      },
+      {
+        "name": "academic standing",
+        "pattern": "^Academic (?:Probation|Warning|Suspension|Dismissal)$",
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "set": {
+          "academic_standing": "{line|squash}"
+        }
+      },
+      {
+        "name": "degree received (undergraduate record)",
+        "pattern": "^Degree Received:\\s*(?P<degree>\\S.*?)\\s*$",
+        "not_in_section": [
+          "grad",
+          "grad_transfer",
+          "grad_transfer_credit"
+        ],
+        "action": "start_program",
+        "set": {
+          "name": "{degree|squash}",
+          "degree_name": "{degree|squash}",
+          "degree_level": "{degree|degree_level}",
+          "credential_type": "degree",
+          "status": "awarded",
+          "academic_level": "Undergraduate"
+        }
+      },
+      {
+        "name": "degree received (graduate record)",
+        "pattern": "^Degree Received:\\s*(?P<degree>\\S.*?)\\s*$",
+        "in_section": [
+          "grad",
+          "grad_transfer",
+          "grad_transfer_credit"
+        ],
+        "action": "start_program",
+        "set": {
+          "name": "{degree|squash}",
+          "degree_name": "{degree|squash}",
+          "degree_level": "{degree|degree_level}",
+          "credential_type": "degree",
+          "status": "awarded",
+          "academic_level": "Graduate"
+        }
+      },
+      {
+        "name": "date conferred",
+        "pattern": "^Date Conferred\\.*:\\s*(?P<date>\\d{1,2}/\\d{1,2}/\\d{4})$",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "date_awarded": "{date|date:%m/%d/%Y}"
+        }
+      },
+      {
+        "name": "majors",
+        "pattern": "^Majors\\.*:\\s*(?P<major>\\S.*?)\\s*$",
+        "requires": [
+          "program"
+        ],
+        "when_empty": "field_of_study",
+        "action": "program",
+        "set": {
+          "field_of_study": "{major|squash}"
+        }
+      },
+      {
+        "name": "minors (undergraduate record)",
+        "pattern": "^Minors:?\\.*:\\s*(?P<minor>\\S.*?)\\s*$",
+        "requires": [
+          "program"
+        ],
+        "not_in_section": [
+          "grad",
+          "grad_transfer",
+          "grad_transfer_credit"
+        ],
+        "action": "start_program",
+        "set": {
+          "name": "{minor|squash}",
+          "field_of_study": "{minor|squash}",
+          "credential_type": "minor",
+          "degree_level": "{@program.degree_level}",
+          "status": "awarded",
+          "date_awarded": "{@program.date_awarded}",
+          "academic_level": "Undergraduate",
+          "notes": {
+            "templates": [
+              "Printed as Minors with the {@program.degree_name} conferred {@program.date_awarded}",
+              "Printed as Minors with the degree"
+            ]
+          }
+        }
+      },
+      {
+        "name": "minors (graduate record)",
+        "pattern": "^Minors:?\\.*:\\s*(?P<minor>\\S.*?)\\s*$",
+        "requires": [
+          "program"
+        ],
+        "in_section": [
+          "grad",
+          "grad_transfer",
+          "grad_transfer_credit"
+        ],
+        "action": "start_program",
+        "set": {
+          "name": "{minor|squash}",
+          "field_of_study": "{minor|squash}",
+          "credential_type": "minor",
+          "degree_level": "{@program.degree_level}",
+          "status": "awarded",
+          "date_awarded": "{@program.date_awarded}",
+          "academic_level": "Graduate",
+          "notes": {
+            "templates": [
+              "Printed as Minors with the {@program.degree_name} conferred {@program.date_awarded}",
+              "Printed as Minors with the degree"
+            ]
+          }
+        }
+      },
+      {
+        "name": "conferral GPA after a minor line",
+        "pattern": "^Conferral GPA\\.*:\\s*(?P<gpa>\\d+\\.\\d+)$",
+        "requires": [
+          "program"
+        ],
+        "when_empty": "degree_name",
+        "action": "program",
+        "add_note": "{line} (conferral GPA of the degree, printed after the minors)"
+      },
+      {
+        "name": "conferral GPA",
+        "pattern": "^Conferral GPA\\.*:\\s*(?P<gpa>\\d+\\.\\d+)$",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "gpa": "{gpa|number}"
+        },
+        "add_note": "{line}"
+      },
+      {
+        "name": "term note (free text under a term)",
+        "pattern": "^(?![A-Z]{2,5}\\s+[A-Z0-9]{3,4}\\s)(?!.*\\b(?:19|20)\\d{2}\\b)(?!.*\\d+\\.\\d{2})(?!.*(?:GPA|Credit|Transfer|Degree|Major|Minor|Conferr|Session|record|Continued))[A-Za-z].*$",
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "set": {
+          "notes": "{line|squash}"
+        }
+      }
+    ]
+  },
+  "notes": [
+    "Read by App-parser (Elon University two-column transcript layout, no AI). Terms in the first record are read as undergraduate and terms in a following separately paginated record as graduate; values are as printed."
+  ],
+  "learned": {
+    "date": "2026-10-27",
+    "by": "claude-opus-5-5",
+    "tries": 1,
+    "verified_on": "1 transcript (App-parser reproduced Claude's reading exactly)"
+  }
+}

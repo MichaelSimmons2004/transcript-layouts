@@ -1,0 +1,423 @@
+{
+  "recipe_format": 1,
+  "id": "forsyth-technical-community-college--academic-transcript",
+  "name": "Forsyth Technical Community College - Academic Transcript",
+  "institution": "Forsyth Technical Community College",
+  "description": "Single-column Courier transcript repeating a header on each page (Page n of m, institution name, Date, Name/SSN, Birth Date, Issued to/ID, recipient address, Curriculum:). The body has an optional 'Courses transferred from other institutions' block with course, title, credits and transfer-from rows and a transfer total; a 'Noncourse Works' block with attempted and completed credits and a course date; then institutional terms headed '<Season> Semester|Term YYYY'. Course rows give code with note suffix, title, grade, optional repeat flag, attempted and completed hours, grade points and course dates. Each term has Term Totals and Cumulative Totals lines. Optional 'Activities/Notes:' block, program name printed as '<Program>-<Specialty>' with a 'Program Total:' line, and a 'Note:' legend explaining the code suffixes, ending with END OF TRANSCRIPT. Built from one sample.",
+  "layout": {
+    "type": "columns_at",
+    "split_x": [
+      600
+    ],
+    "header_bottom": 125,
+    "header_bottom_later_pages": 115
+  },
+  "detect": {
+    "header_contains": [
+      "Forsyth Technical Community College",
+      "Issued to:",
+      "Birth Date:"
+    ],
+    "text_contains": [
+      "Cumulative Totals:",
+      "Title/Comments"
+    ]
+  },
+  "constants": {
+    "institution.name": "Forsyth Technical Community College"
+  },
+  "fields": [
+    {
+      "field": "student.name_as_printed",
+      "pattern": "^Name:\\s+(.+?)\\s+SSN:"
+    },
+    {
+      "field": "student.name",
+      "pattern": "^Name:\\s+([^,]+?),\\s*(.+?)\\s+SSN:",
+      "value": "{2} {1}"
+    },
+    {
+      "field": "student.student_id",
+      "pattern": "(?:^|\\s)ID:\\s*(\\S+)\\s*$"
+    },
+    {
+      "field": "student.date_of_birth",
+      "pattern": "Birth Date:\\s*(.+?)\\s*$"
+    },
+    {
+      "field": "document.issue_date",
+      "pattern": "^Date:\\s*(\\d{1,2} [A-Za-z]{3} \\d{4})\\s*$",
+      "value": "{1|date:%d %b %Y}"
+    }
+  ],
+  "required": [
+    "student.name_as_printed",
+    "student.student_id"
+  ],
+  "tables": {
+    "note_codes": {
+      "**": "UNC Core Hour courses",
+      "*A": "CAA courses",
+      "*P": "CAA courses (prior to 2014)",
+      "*U": "Universal General Education Transfer Component courses"
+    },
+    "repeat_flags": {
+      "R": "repeated"
+    }
+  },
+  "lines": {
+    "stop": [
+      "^END OF TRANSCRIPT$"
+    ],
+    "ignore": [
+      "^Page:\\s+\\d+\\s+of\\s+\\d+$"
+    ],
+    "rules": [
+      {
+        "name": "curriculum label",
+        "pattern": "^Curriculum:$",
+        "action": "ignore",
+        "section": "curriculum"
+      },
+      {
+        "name": "column headings",
+        "pattern": "^Course\\s+Title/Comments\\b.*$",
+        "action": "ignore"
+      },
+      {
+        "name": "column headings upper row",
+        "pattern": "^(Att\\s+Cmpl|Hrs\\s+Hrs\\s+Grade)$",
+        "action": "ignore"
+      },
+      {
+        "name": "rule line",
+        "pattern": "^[-_\\s]+$",
+        "action": "ignore"
+      },
+      {
+        "name": "transfer block heading",
+        "pattern": "^Courses transferred from other institutions$",
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "section": "transfer",
+        "set": {
+          "name": "{line}",
+          "term_type": "transfer"
+        }
+      },
+      {
+        "name": "noncourse block heading",
+        "pattern": "^Noncourse Works$",
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "section": "noncourse",
+        "set": {
+          "name": "{line}",
+          "term_type": "other"
+        }
+      },
+      {
+        "name": "term heading",
+        "pattern": "^(?P<season>Spring|Summer|Fall|Winter)\\s+(?P<kind>Semester|Term|Quarter|Session)\\s+(?P<year>\\d{4})$",
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "section": "terms",
+        "set": {
+          "name": "{line}",
+          "season": "{season|lower}",
+          "year": "{year|int}",
+          "term_type": "institutional",
+          "institution": "Forsyth Technical Community College"
+        }
+      },
+      {
+        "name": "transfer course row",
+        "pattern": "^(?P<code>(?P<subject>[A-Z]{2,4})-(?P<number>\\d{3,4}[A-Z]?)(?P<note>\\*[A-Z*])?)\\s+(?P<title>\\S.*?)\\s+(?P<credits>\\d+\\.\\d{2})\\s+(?P<from>\\S.*)$",
+        "in_section": "transfer",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{code}",
+          "title": "{title}",
+          "credits": "{credits|number}",
+          "status": "completed",
+          "flags": "transfer",
+          "attributes": {
+            "object": {
+              "label": "Note",
+              "code": "{note}",
+              "meaning": "{note|map:note_codes}"
+            },
+            "unless_empty": "code"
+          },
+          "notes": "Transfer From: {from}"
+        },
+        "then": [
+          {
+            "action": "term",
+            "set_if_empty": true,
+            "set": {
+              "institution": "{from}"
+            }
+          }
+        ]
+      },
+      {
+        "name": "transfer total",
+        "pattern": "^The total transfer cred:\\s+(?P<earned>\\d+\\.\\d{2})$",
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "set": {
+          "label": "The total transfer cred:",
+          "scope": "transfer",
+          "earned": "{earned|number}"
+        }
+      },
+      {
+        "name": "noncourse row no completed credit",
+        "pattern": "^(?P<code>(?P<subject>[A-Z]{2,4})-(?P<number>\\d{3,4}[A-Z]?)(?P<note>\\*[A-Z*])?)\\s+(?P<title>\\S.*?)\\s+(?P<att>\\d+\\.\\d{2})\\s+(?P<cmpl>0\\.00)\\s+(?P<date>\\d{2}/\\d{2}/\\d{2})$",
+        "in_section": "noncourse",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{code}",
+          "title": "{title}",
+          "credits": "{att|number}",
+          "credits_earned": "{cmpl|number}",
+          "attributes": {
+            "object": {
+              "label": "Note",
+              "code": "{note}",
+              "meaning": "{note|map:note_codes}"
+            },
+            "unless_empty": "code"
+          },
+          "notes": "Course Date: {date}"
+        }
+      },
+      {
+        "name": "noncourse row",
+        "pattern": "^(?P<code>(?P<subject>[A-Z]{2,4})-(?P<number>\\d{3,4}[A-Z]?)(?P<note>\\*[A-Z*])?)\\s+(?P<title>\\S.*?)\\s+(?P<att>\\d+\\.\\d{2})\\s+(?P<cmpl>\\d+\\.\\d{2})\\s+(?P<date>\\d{2}/\\d{2}/\\d{2})$",
+        "in_section": "noncourse",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{code}",
+          "title": "{title}",
+          "credits": "{att|number}",
+          "credits_earned": "{cmpl|number}",
+          "status": "completed",
+          "attributes": {
+            "object": {
+              "label": "Note",
+              "code": "{note}",
+              "meaning": "{note|map:note_codes}"
+            },
+            "unless_empty": "code"
+          },
+          "notes": "Course Date: {date}"
+        }
+      },
+      {
+        "name": "noncourse total",
+        "pattern": "^The total Noncourse cred:\\s+(?P<att>\\d+\\.\\d{2})\\s+(?P<cmpl>\\d+\\.\\d{2})$",
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "set": {
+          "label": "The total Noncourse cred:",
+          "scope": "other",
+          "attempted": "{att|number}",
+          "earned": "{cmpl|number}"
+        }
+      },
+      {
+        "name": "institutional course row",
+        "pattern": "^(?P<code>(?P<subject>[A-Z]{2,4})-(?P<number>\\d{3,4}[A-Z]?)(?P<note>\\*[A-Z*])?)\\s+(?P<title>\\S.*?)\\s+(?P<grade>[A-Z]{1,2}[+-]?)(?:\\s+(?P<repeat>R))?\\s+(?P<att>\\d+\\.\\d{2})\\s+(?P<cmpl>\\d+\\.\\d{2})\\s+(?P<qp>\\d+\\.\\d{2})\\s+(?P<start>\\d{2}/\\d{2}/\\d{2})-(?P<end>\\d{2}/\\d{2}/\\d{2})$",
+        "not_in_section": [
+          "transfer",
+          "noncourse"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{code}",
+          "title": "{title}",
+          "grade": "{grade}",
+          "credits": "{att|number}",
+          "credits_earned": "{cmpl|number}",
+          "quality_points": "{qp|number}",
+          "flags": "{repeat|map:repeat_flags}",
+          "attributes": {
+            "object": {
+              "label": "Note",
+              "code": "{note}",
+              "meaning": "{note|map:note_codes}"
+            },
+            "unless_empty": "code"
+          },
+          "notes": {
+            "templates": [
+              "Repeat: {repeat}. Course Dates: {start}-{end}",
+              "Course Dates: {start}-{end}"
+            ]
+          }
+        },
+        "status_from_grade": {
+          "table": {
+            "W": "withdrawn",
+            "F": "failed",
+            "I": "incomplete",
+            "AU": "audit"
+          },
+          "flags": {
+            "W": [
+              "withdrawn"
+            ]
+          },
+          "default": "completed"
+        },
+        "then": [
+          {
+            "action": "term",
+            "set_if_empty": true,
+            "set": {
+              "start_date": "{start}",
+              "end_date": "{end}"
+            }
+          }
+        ]
+      },
+      {
+        "name": "term totals",
+        "pattern": "^Term Totals:\\s+(?P<att>\\d+\\.\\d{2})\\s+(?P<cmpl>\\d+\\.\\d{2})\\s+(?P<qp>\\d+\\.\\d{2})\\s+GPA\\s*=\\s*(?P<gpa>\\d+\\.\\d+)$",
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "set": {
+          "label": "Term Totals:",
+          "scope": "term",
+          "attempted": "{att|number}",
+          "earned": "{cmpl|number}",
+          "quality_points": "{qp|number}",
+          "gpa": "{gpa|number}"
+        }
+      },
+      {
+        "name": "cumulative totals",
+        "pattern": "^Cumulative Totals:\\s+(?P<att>\\d+\\.\\d{2})\\s+(?P<cmpl>\\d+\\.\\d{2})\\s+(?P<qp>\\d+\\.\\d{2})\\s+GPA\\s*=\\s*(?P<gpa>\\d+\\.\\d+)$",
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "section": "after_cum",
+        "set": {
+          "label": "Cumulative Totals:",
+          "scope": "cumulative",
+          "attempted": "{att|number}",
+          "earned": "{cmpl|number}",
+          "quality_points": "{qp|number}",
+          "gpa": "{gpa|number}"
+        }
+      },
+      {
+        "name": "program total",
+        "pattern": "^Program Total:\\s+Completed Cred\\s*:\\s*=\\s*(?P<earned>\\d+\\.\\d{2})\\s+GPA\\s*=\\s*(?P<gpa>\\d+\\.\\d+)$",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "gpa": "{gpa|number}"
+        },
+        "add_note": "{line}",
+        "then": [
+          {
+            "action": "start_summary",
+            "set": {
+              "label": "Program Total:",
+              "scope": "other",
+              "earned": "{earned|number}",
+              "gpa": "{gpa|number}"
+            }
+          }
+        ]
+      },
+      {
+        "name": "activities heading",
+        "pattern": "^Activities/Notes:.*$",
+        "action": "remark",
+        "text": "{line}",
+        "section": "activities"
+      },
+      {
+        "name": "note legend heading",
+        "pattern": "^Note:\\s*$",
+        "action": "remark",
+        "text": "{line}",
+        "section": "note_first"
+      },
+      {
+        "name": "program name",
+        "pattern": "^(?P<name>[A-Z][A-Za-z&'(),/ .]*[A-Za-z)]-[A-Z][A-Za-z&'(),/ .-]*[A-Za-z)])$",
+        "in_section": "after_cum",
+        "action": "start_program",
+        "set": {
+          "name": "{name}",
+          "field_of_study": "{name}",
+          "credential_type": "other"
+        }
+      },
+      {
+        "name": "activities text",
+        "pattern": ".+",
+        "in_section": "activities",
+        "action": "remark",
+        "text": "{line}",
+        "continue": true
+      },
+      {
+        "name": "note legend first line",
+        "pattern": ".+",
+        "in_section": "note_first",
+        "action": "remark",
+        "text": "{line}",
+        "continue": true,
+        "section": "notes"
+      },
+      {
+        "name": "note legend line",
+        "pattern": ".+",
+        "in_section": "notes",
+        "action": "remark",
+        "text": "{line}"
+      }
+    ]
+  },
+  "learned": {
+    "date": "2026-11-02",
+    "by": "claude-opus-5-5",
+    "tries": 3,
+    "verified_on": "1 transcript (App-parser reproduced Claude's reading exactly)"
+  }
+}

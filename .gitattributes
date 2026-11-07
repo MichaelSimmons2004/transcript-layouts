@@ -1,0 +1,3 @@
+# Layout files and index.json are published as exact bytes (their SHA-256 is checked by the app):
+# never convert line endings.
+* -text

@@ -1,0 +1,1661 @@
+{
+  "recipe_format": 1,
+  "id": "university-of-michigan--academic-transcript",
+  "name": "University of Michigan - Academic Transcript (landscape, two-column record)",
+  "institution": "University of Michigan",
+  "description": "University of Michigan 'Academic Transcript of:' layout. Landscape pages. The header band holds the student name, student ID number, control number and date issued; a short code block under it on some transcripts is kept in the header band. Record pages are read as two columns split at x=400, left column first. Possible blocks: degrees awarded (School/College, Field(s) of Specialization, Degree, Awarded), non-UM academic experience (school name and city/state/zip), advanced placement credit (SUBJ 123 Title Credits), and the undergraduate/graduate record between BEGINNING OF and END OF lines. The record may open with a transfer credit block ('Transfer Course Credit Accepted towards' plus a career line with MSH/CTP/MHP). Term headings are '<Season> <Year> <Career> Grade Hours MSH CTP MHP'; course rows 'SUBJ 123 Title [Grade] Hours MSH CTP MHP', optionally followed by a topic line; 'Term Total' lines; a career line plus 'Cumulative Total [GPA: x] MSH CTP MHP'. Terms following a transfer block are labelled with the university and the career without its level word, and their course rows carry the MSH value as a note. Undergraduate remarks (dated honors/events), graduate remarks (dated text, possibly wrapped), dissertation and committee lines and general remarks follow; reading stops at 'End of Transcript'. TRANSCRIPT GUIDE pages are skipped and their legend is copied as the grading scale (the Fail grade, printed twice in the legend, is listed once). The 'not an official transcript' notice is kept as a remark. Built on two samples.",
+  "layout": {
+    "type": "columns_at",
+    "split_x": [
+      400
+    ],
+    "header_bottom": 70,
+    "footer_top": 525,
+    "skip_pages_containing": [
+      "TRANSCRIPT GUIDE"
+    ]
+  },
+  "detect": {
+    "header_contains": [
+      "Academic Transcript of:",
+      "STUDENT ID NUMBER",
+      "CONTROL NUMBER",
+      "DATE ISSUED"
+    ],
+    "text_contains": [
+      "Hours MSH"
+    ]
+  },
+  "constants": {
+    "document.title": "Academic Transcript",
+    "document.is_official": false,
+    "document.credit_unit": "semester hours",
+    "institution.name": "University of Michigan",
+    "institution.address": "Ann Arbor, MI 48109-1382",
+    "institution.issuing_office": "Office of the Registrar"
+  },
+  "fields": [
+    {
+      "field": "student.name_as_printed",
+      "pattern": "^Academic Transcript of:\\s+(.+?)(?:\\s+\\d{5,}\\b.*)?$"
+    },
+    {
+      "field": "student.name",
+      "pattern": "^Academic Transcript of:\\s+(.+?)(?:\\s+\\d{5,}\\b.*)?$",
+      "value": "{1|name_last_first}"
+    },
+    {
+      "field": "student.student_id",
+      "pattern": "(?:^|\\s)(\\d{5,})\\s+\\d{5,}\\s*-\\s*\\d+\\s+\\d{2}-[A-Za-z]{3}-\\d{4}"
+    },
+    {
+      "field": "document.issue_date",
+      "pattern": "(\\d{2}-[A-Za-z]{3}-\\d{4})\\s+Page\\s+\\d+",
+      "value": "{1|date:%d-%b-%Y}"
+    }
+  ],
+  "required": [
+    "student.name_as_printed",
+    "student.student_id"
+  ],
+  "tables": {
+    "level_by_degree": {
+      "master": "Graduate",
+      "doctoral": "Graduate",
+      "bachelor": "Undergraduate",
+      "associate": "Undergraduate"
+    },
+    "seasons": {
+      "Fall": "fall",
+      "Winter": "winter",
+      "Spring": "spring",
+      "Summer": "summer",
+      "Spring/Summer": "summer",
+      "Spring-Summer": "summer"
+    }
+  },
+  "lines": {
+    "stop": [
+      "^End of Transcript$"
+    ],
+    "ignore": [],
+    "rules": [
+      {
+        "name": "page continuation notice",
+        "pattern": "^Continued next page\\s*>?$",
+        "action": "ignore"
+      },
+      {
+        "name": "page count notice",
+        "pattern": "^Total Number of Pages\\s+\\d+$",
+        "action": "ignore"
+      },
+      {
+        "name": "disclaimer line 1",
+        "pattern": "^This is not an official transcript\\. Transcript is$",
+        "action": "remark",
+        "text": "{line}"
+      },
+      {
+        "name": "disclaimer line 2",
+        "pattern": "^official and valid only with Registrar.s signature$",
+        "action": "remark",
+        "continue": true,
+        "text": "{line}"
+      },
+      {
+        "name": "disclaimer line 3",
+        "pattern": "^(?:(?:(?:[ITY]{1,3} )?(?:OF|O|F) )?M?I?C?H?I?G?A?N )?and University Seal\\.$",
+        "action": "remark",
+        "continue": true,
+        "text": "and University Seal."
+      },
+      {
+        "name": "page heading: institution name (left part)",
+        "pattern": "^UNIVERS[ITYOFMCHGAN ]{0,15}$",
+        "action": "institution",
+        "set": {
+          "name": "University of Michigan"
+        }
+      },
+      {
+        "name": "page heading: institution name (right part)",
+        "pattern": "^(?:(?:[ITY]{1,3} )?(?:OF|O|F) )?M?I?C?H?I?G?A?N$",
+        "action": "institution",
+        "set": {
+          "name": "University of Michigan"
+        }
+      },
+      {
+        "name": "page heading: office (whole)",
+        "pattern": "^OFFICE OF THE REGISTRAR - ANN ARBOR, MI 48109-1382$",
+        "action": "institution",
+        "set": {
+          "issuing_office": "Office of the Registrar",
+          "address": "Ann Arbor, MI 48109-1382"
+        }
+      },
+      {
+        "name": "page heading: office (left part)",
+        "pattern": "^OFFICE OF THE R[A-Z ,-]{0,30}$",
+        "action": "institution",
+        "set": {
+          "issuing_office": "Office of the Registrar"
+        }
+      },
+      {
+        "name": "page heading: office (right part)",
+        "pattern": "^[A-Z ,-]{0,30}48109-1382$",
+        "action": "institution",
+        "set": {
+          "address": "Ann Arbor, MI 48109-1382"
+        }
+      },
+      {
+        "name": "degrees heading",
+        "pattern": "^UNIVERSITY OF MICHIGAN DEGREES AWARDED$",
+        "action": "ignore",
+        "section": "degrees"
+      },
+      {
+        "name": "prior schools heading",
+        "pattern": "^NON-UNIVERSITY OF MICHIGAN ACADEMIC EXPERIENCE$",
+        "action": "ignore",
+        "section": "prior"
+      },
+      {
+        "name": "AP credit heading",
+        "pattern": "^ADVANCED PLACEMENT AND (?P<e>E)XAMINATION CREDIT(?:\\s+CREDITS)?$",
+        "action": "start_term",
+        "section": "ap",
+        "set": {
+          "name": "ADVANCED PLACEMENT AND EXAMINATION CREDIT",
+          "term_type": "t{e|lower}st_credit"
+        }
+      },
+      {
+        "name": "undergraduate record start",
+        "pattern": "^BEGINNING OF UNDERGRADUATE RECORD$",
+        "action": "ignore",
+        "section": "ug"
+      },
+      {
+        "name": "graduate record start",
+        "pattern": "^BEGINNING OF GRADUATE RECORD$",
+        "action": "ignore",
+        "section": "gr"
+      },
+      {
+        "name": "undergraduate record end",
+        "pattern": "^END OF UNDERGRADUATE RECORD$",
+        "action": "ignore",
+        "section": "end"
+      },
+      {
+        "name": "graduate record end",
+        "pattern": "^END OF GRADUATE RECORD$",
+        "action": "ignore",
+        "section": "end"
+      },
+      {
+        "name": "undergraduate remarks heading",
+        "pattern": "^UNDERGRADUATE REMARKS$",
+        "action": "ignore",
+        "section": "ug_remarks"
+      },
+      {
+        "name": "graduate remarks heading",
+        "pattern": "^GRADUATE REMARKS$",
+        "action": "ignore",
+        "section": "gr_remarks"
+      },
+      {
+        "name": "remarks heading",
+        "pattern": "^REMARKS$",
+        "action": "ignore",
+        "section": "remarks"
+      },
+      {
+        "name": "degree: school/college",
+        "pattern": "^School/College:\\s+(?P<college>.+?)\\s*$",
+        "in_section": "degrees",
+        "action": "start_program",
+        "set": {
+          "credential_type": "degree",
+          "status": "awarded",
+          "college_or_school": "{college}"
+        }
+      },
+      {
+        "name": "degree: field",
+        "pattern": "^Field\\(s\\) of Specialization:\\s+(?P<field>.+?)\\s*$",
+        "in_section": "degrees",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "field_of_study": "{field}"
+        }
+      },
+      {
+        "name": "degree: name",
+        "pattern": "^Degree:\\s+(?P<degree>.+?)\\s*$",
+        "in_section": "degrees",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "name": "{degree}",
+          "degree_name": "{degree}",
+          "degree_level": "{degree|degree_level}",
+          "academic_level": {
+            "template": "{@degree_level}",
+            "map": "level_by_degree",
+            "default": null
+          }
+        }
+      },
+      {
+        "name": "degree: awarded",
+        "pattern": "^Awarded:\\s+(?P<date>\\d{2}-[A-Za-z]{3}-\\d{4})$",
+        "in_section": "degrees",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "date_awarded": "{date|date:%d-%b-%Y}"
+        }
+      },
+      {
+        "name": "prior school: city state zip",
+        "pattern": "^(?P<city>[A-Z][A-Za-z .'-]*)\\s+(?P<st>[A-Z]{2})\\s+(?P<zip>\\d{5}(?:-\\d{4})?)$",
+        "in_section": "prior",
+        "action": "prior_education",
+        "continue": true,
+        "separator": ", ",
+        "set": {
+          "institution": "{line}"
+        }
+      },
+      {
+        "name": "prior school: name",
+        "pattern": ".+",
+        "in_section": "prior",
+        "action": "prior_education",
+        "set": {
+          "institution": "{line}"
+        }
+      },
+      {
+        "name": "AP course",
+        "pattern": "^(?P<subject>[A-Z][A-Z&]{1,7})\\s+(?P<number>\\d{3}[A-Z]?)\\s+(?P<title>.+?)\\s+(?P<credits>\\d+\\.\\d{2})$",
+        "in_section": "ap",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{subject} {number}",
+          "title": "{title}",
+          "credits": "{credits|number}",
+          "status": "completed"
+        }
+      },
+      {
+        "name": "undergraduate transfer heading",
+        "pattern": "^Transfer Course Credit Accepted towards(?:\\s+MSH\\s+CTP\\s+MHP)?$",
+        "in_section": "ug",
+        "action": "start_term",
+        "section": "xug_transfer",
+        "set": {
+          "name": "Transfer Course Credit Accepted towards",
+          "term_type": "transfer",
+          "academic_level": "Undergraduate"
+        }
+      },
+      {
+        "name": "graduate transfer heading",
+        "pattern": "^Transfer Course Credit Accepted towards(?:\\s+MSH\\s+CTP\\s+MHP)?$",
+        "in_section": "gr",
+        "action": "start_term",
+        "section": "xgr_transfer",
+        "set": {
+          "name": "Transfer Course Credit Accepted towards",
+          "term_type": "transfer",
+          "academic_level": "Graduate"
+        }
+      },
+      {
+        "name": "transfer career totals",
+        "pattern": "^(?P<full>(?:(?:Undergraduate|Graduate)\\s+)?(?P<prog>[A-Za-z][A-Za-z&./' -]*?))\\s+(?P<msh>\\d+\\.\\d{2})\\s+(?P<ctp>\\d+\\.\\d{2})\\s+(?P<mhp>\\d+\\.\\d{2})$",
+        "in_section": [
+          "xug_transfer",
+          "xgr_transfer"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "append": {
+          "name": "{full}"
+        },
+        "then": [
+          {
+            "action": "term",
+            "set": {
+              "program": "{prog}",
+              "notes": "Columns printed: MSH {msh}, CTP {ctp}, MHP {mhp}"
+            }
+          },
+          {
+            "action": "term_totals",
+            "set": {
+              "label": "Transfer Course Credit Accepted towards {full}",
+              "scope": "transfer",
+              "gpa_hours": "{msh|number}",
+              "earned": "{ctp|number}",
+              "quality_points": "{mhp|number}"
+            }
+          }
+        ]
+      },
+      {
+        "name": "undergraduate term heading",
+        "pattern": "^(?P<season>Spring/Summer|Spring-Summer|Fall|Winter|Spring|Summer)\\s+(?P<year>\\d{4})\\s+(?P<career>.+?)\\s+Grade\\s+Hours\\s+MSH\\s+CTP\\s+MHP$",
+        "in_section": [
+          "ug",
+          "ug_term",
+          "ug_course",
+          "ug_total",
+          "ug_cum"
+        ],
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "section": "ug_term",
+        "set": {
+          "name": "{season} {year}",
+          "season": {
+            "template": "{season}",
+            "map": "seasons"
+          },
+          "year": "{year|int}",
+          "term_type": "institutional",
+          "academic_level": "Undergraduate",
+          "program": "{career}"
+        }
+      },
+      {
+        "name": "graduate term heading",
+        "pattern": "^(?P<season>Spring/Summer|Spring-Summer|Fall|Winter|Spring|Summer)\\s+(?P<year>\\d{4})\\s+(?P<career>.+?)\\s+Grade\\s+Hours\\s+MSH\\s+CTP\\s+MHP$",
+        "in_section": [
+          "gr",
+          "gr_term",
+          "gr_course",
+          "gr_total",
+          "gr_cum"
+        ],
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "section": "gr_term",
+        "set": {
+          "name": "{season} {year}",
+          "season": {
+            "template": "{season}",
+            "map": "seasons"
+          },
+          "year": "{year|int}",
+          "term_type": "institutional",
+          "academic_level": "Graduate",
+          "program": "{career}"
+        }
+      },
+      {
+        "name": "undergraduate term heading after transfer block",
+        "pattern": "^(?P<season>Spring/Summer|Spring-Summer|Fall|Winter|Spring|Summer)\\s+(?P<year>\\d{4})\\s+(?:(?:Undergraduate|Graduate)\\s+)?(?P<prog>.+?)\\s+Grade\\s+Hours\\s+MSH\\s+CTP\\s+MHP$",
+        "in_section": [
+          "xug_transfer",
+          "xug_term",
+          "xug_course",
+          "xug_total",
+          "xug_cum"
+        ],
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "section": "xug_term",
+        "set": {
+          "name": "{season} {year}",
+          "season": {
+            "template": "{season}",
+            "map": "seasons"
+          },
+          "year": "{year|int}",
+          "term_type": "institutional",
+          "institution": "University of Michigan",
+          "academic_level": "Undergraduate",
+          "program": "{prog}"
+        }
+      },
+      {
+        "name": "graduate term heading after transfer block",
+        "pattern": "^(?P<season>Spring/Summer|Spring-Summer|Fall|Winter|Spring|Summer)\\s+(?P<year>\\d{4})\\s+(?:(?:Undergraduate|Graduate)\\s+)?(?P<prog>.+?)\\s+Grade\\s+Hours\\s+MSH\\s+CTP\\s+MHP$",
+        "in_section": [
+          "xgr_transfer",
+          "xgr_term",
+          "xgr_course",
+          "xgr_total",
+          "xgr_cum"
+        ],
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "section": "xgr_term",
+        "set": {
+          "name": "{season} {year}",
+          "season": {
+            "template": "{season}",
+            "map": "seasons"
+          },
+          "year": "{year|int}",
+          "term_type": "institutional",
+          "institution": "University of Michigan",
+          "academic_level": "Graduate",
+          "program": "{prog}"
+        }
+      },
+      {
+        "name": "undergraduate course row",
+        "pattern": "^(?P<subject>[A-Z][A-Z&]{1,9})\\s+(?P<number>\\d{3}[A-Z]?)\\s+(?P<title>.+?)\\s+(?:(?P<grade>(?:IL?)?[A-E][+-]?|EX|GD|PS|LP|CR|NC|NRC|NR|IPL|ED|VI|IL|##|[FSUPIWYM])\\s+)?(?P<hrs>\\d+\\.\\d{2})\\s+(?P<msh>\\d+\\.\\d{2})\\s+(?P<ctp>\\d+\\.\\d{2})\\s+(?P<mhp>\\d+\\.\\d{2})$",
+        "in_section": [
+          "ug_term",
+          "ug_course"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "section": "ug_course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{subject} {number}",
+          "title": "{title}",
+          "credits": "{hrs|number}",
+          "credits_earned": "{ctp|number}",
+          "grade": "{grade}",
+          "quality_points": "{mhp|number}"
+        },
+        "status_from_grade": {
+          "patterns": [
+            {
+              "pattern": "IL?[A-D][+-]?",
+              "status": "completed"
+            },
+            {
+              "pattern": "[A-D][+-]?",
+              "status": "completed"
+            },
+            {
+              "pattern": "IL?E",
+              "status": "failed"
+            }
+          ],
+          "table": {
+            "E": "failed",
+            "F": "failed",
+            "U": "failed",
+            "NRC": "failed",
+            "W": "withdrawn",
+            "ED": "withdrawn",
+            "I": "incomplete",
+            "IL": "incomplete",
+            "IPL": "incomplete",
+            "NR": "other",
+            "##": "other",
+            "VI": "audit",
+            "Y": "in_progress",
+            "NC": "no_credit",
+            "CR": "completed",
+            "S": "completed",
+            "P": "completed",
+            "EX": "completed",
+            "GD": "completed",
+            "PS": "completed",
+            "LP": "completed",
+            "M": "completed"
+          },
+          "flags": {
+            "W": [
+              "withdrawn"
+            ],
+            "ED": [
+              "withdrawn"
+            ],
+            "I": [
+              "incomplete"
+            ],
+            "IL": [
+              "incomplete"
+            ],
+            "IPL": [
+              "incomplete"
+            ],
+            "P": [
+              "pass_fail"
+            ]
+          }
+        }
+      },
+      {
+        "name": "graduate course row",
+        "pattern": "^(?P<subject>[A-Z][A-Z&]{1,9})\\s+(?P<number>\\d{3}[A-Z]?)\\s+(?P<title>.+?)\\s+(?:(?P<grade>(?:IL?)?[A-E][+-]?|EX|GD|PS|LP|CR|NC|NRC|NR|IPL|ED|VI|IL|##|[FSUPIWYM])\\s+)?(?P<hrs>\\d+\\.\\d{2})\\s+(?P<msh>\\d+\\.\\d{2})\\s+(?P<ctp>\\d+\\.\\d{2})\\s+(?P<mhp>\\d+\\.\\d{2})$",
+        "in_section": [
+          "gr_term",
+          "gr_course"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "section": "gr_course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{subject} {number}",
+          "title": "{title}",
+          "credits": "{hrs|number}",
+          "credits_earned": "{ctp|number}",
+          "grade": "{grade}",
+          "quality_points": "{mhp|number}"
+        },
+        "status_from_grade": {
+          "patterns": [
+            {
+              "pattern": "IL?[A-D][+-]?",
+              "status": "completed"
+            },
+            {
+              "pattern": "[A-D][+-]?",
+              "status": "completed"
+            },
+            {
+              "pattern": "IL?E",
+              "status": "failed"
+            }
+          ],
+          "table": {
+            "E": "failed",
+            "F": "failed",
+            "U": "failed",
+            "NRC": "failed",
+            "W": "withdrawn",
+            "ED": "withdrawn",
+            "I": "incomplete",
+            "IL": "incomplete",
+            "IPL": "incomplete",
+            "NR": "other",
+            "##": "other",
+            "VI": "audit",
+            "Y": "in_progress",
+            "NC": "no_credit",
+            "CR": "completed",
+            "S": "completed",
+            "P": "completed",
+            "EX": "completed",
+            "GD": "completed",
+            "PS": "completed",
+            "LP": "completed",
+            "M": "completed"
+          },
+          "flags": {
+            "W": [
+              "withdrawn"
+            ],
+            "ED": [
+              "withdrawn"
+            ],
+            "I": [
+              "incomplete"
+            ],
+            "IL": [
+              "incomplete"
+            ],
+            "IPL": [
+              "incomplete"
+            ],
+            "P": [
+              "pass_fail"
+            ]
+          }
+        }
+      },
+      {
+        "name": "undergraduate course row after transfer block",
+        "pattern": "^(?P<subject>[A-Z][A-Z&]{1,9})\\s+(?P<number>\\d{3}[A-Z]?)\\s+(?P<title>.+?)\\s+(?:(?P<grade>(?:IL?)?[A-E][+-]?|EX|GD|PS|LP|CR|NC|NRC|NR|IPL|ED|VI|IL|##|[FSUPIWYM])\\s+)?(?P<hrs>\\d+\\.\\d{2})\\s+(?P<msh>\\d+\\.\\d{2})\\s+(?P<ctp>\\d+\\.\\d{2})\\s+(?P<mhp>\\d+\\.\\d{2})$",
+        "in_section": [
+          "xug_term",
+          "xug_course"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "section": "xug_course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{subject} {number}",
+          "title": "{title}",
+          "credits": "{hrs|number}",
+          "credits_earned": "{ctp|number}",
+          "grade": "{grade}",
+          "quality_points": "{mhp|number}",
+          "notes": "MSH {msh}"
+        },
+        "status_from_grade": {
+          "patterns": [
+            {
+              "pattern": "IL?[A-D][+-]?",
+              "status": "completed"
+            },
+            {
+              "pattern": "[A-D][+-]?",
+              "status": "completed"
+            },
+            {
+              "pattern": "IL?E",
+              "status": "failed"
+            }
+          ],
+          "table": {
+            "E": "failed",
+            "F": "failed",
+            "U": "failed",
+            "NRC": "failed",
+            "W": "withdrawn",
+            "ED": "withdrawn",
+            "I": "incomplete",
+            "IL": "incomplete",
+            "IPL": "incomplete",
+            "NR": "other",
+            "##": "other",
+            "VI": "audit",
+            "Y": "in_progress",
+            "NC": "no_credit",
+            "CR": "completed",
+            "S": "completed",
+            "P": "completed",
+            "EX": "completed",
+            "GD": "completed",
+            "PS": "completed",
+            "LP": "completed",
+            "M": "completed"
+          },
+          "flags": {
+            "W": [
+              "withdrawn"
+            ],
+            "ED": [
+              "withdrawn"
+            ],
+            "I": [
+              "incomplete"
+            ],
+            "IL": [
+              "incomplete"
+            ],
+            "IPL": [
+              "incomplete"
+            ],
+            "P": [
+              "pass_fail"
+            ]
+          }
+        }
+      },
+      {
+        "name": "graduate course row after transfer block",
+        "pattern": "^(?P<subject>[A-Z][A-Z&]{1,9})\\s+(?P<number>\\d{3}[A-Z]?)\\s+(?P<title>.+?)\\s+(?:(?P<grade>(?:IL?)?[A-E][+-]?|EX|GD|PS|LP|CR|NC|NRC|NR|IPL|ED|VI|IL|##|[FSUPIWYM])\\s+)?(?P<hrs>\\d+\\.\\d{2})\\s+(?P<msh>\\d+\\.\\d{2})\\s+(?P<ctp>\\d+\\.\\d{2})\\s+(?P<mhp>\\d+\\.\\d{2})$",
+        "in_section": [
+          "xgr_term",
+          "xgr_course"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "section": "xgr_course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{subject} {number}",
+          "title": "{title}",
+          "credits": "{hrs|number}",
+          "credits_earned": "{ctp|number}",
+          "grade": "{grade}",
+          "quality_points": "{mhp|number}",
+          "notes": "MSH {msh}"
+        },
+        "status_from_grade": {
+          "patterns": [
+            {
+              "pattern": "IL?[A-D][+-]?",
+              "status": "completed"
+            },
+            {
+              "pattern": "[A-D][+-]?",
+              "status": "completed"
+            },
+            {
+              "pattern": "IL?E",
+              "status": "failed"
+            }
+          ],
+          "table": {
+            "E": "failed",
+            "F": "failed",
+            "U": "failed",
+            "NRC": "failed",
+            "W": "withdrawn",
+            "ED": "withdrawn",
+            "I": "incomplete",
+            "IL": "incomplete",
+            "IPL": "incomplete",
+            "NR": "other",
+            "##": "other",
+            "VI": "audit",
+            "Y": "in_progress",
+            "NC": "no_credit",
+            "CR": "completed",
+            "S": "completed",
+            "P": "completed",
+            "EX": "completed",
+            "GD": "completed",
+            "PS": "completed",
+            "LP": "completed",
+            "M": "completed"
+          },
+          "flags": {
+            "W": [
+              "withdrawn"
+            ],
+            "ED": [
+              "withdrawn"
+            ],
+            "I": [
+              "incomplete"
+            ],
+            "IL": [
+              "incomplete"
+            ],
+            "IPL": [
+              "incomplete"
+            ],
+            "P": [
+              "pass_fail"
+            ]
+          }
+        }
+      },
+      {
+        "name": "undergraduate term total",
+        "pattern": "^Term Total\\s+(?:GPA:\\s+(?P<gpa>\\d+\\.\\d+)\\s+)?(?P<hrs>\\d+\\.\\d{2})\\s+(?P<msh>\\d+\\.\\d{2})\\s+(?P<ctp>\\d+\\.\\d{2})\\s+(?P<mhp>\\d+\\.\\d{2})$",
+        "in_section": [
+          "ug_term",
+          "ug_course"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "section": "ug_total",
+        "set": {
+          "label": "Term Total",
+          "scope": "term",
+          "attempted": "{hrs|number}",
+          "earned": "{ctp|number}",
+          "gpa_hours": "{msh|number}",
+          "quality_points": "{mhp|number}",
+          "gpa": "{gpa|number}"
+        }
+      },
+      {
+        "name": "graduate term total",
+        "pattern": "^Term Total\\s+(?:GPA:\\s+(?P<gpa>\\d+\\.\\d+)\\s+)?(?P<hrs>\\d+\\.\\d{2})\\s+(?P<msh>\\d+\\.\\d{2})\\s+(?P<ctp>\\d+\\.\\d{2})\\s+(?P<mhp>\\d+\\.\\d{2})$",
+        "in_section": [
+          "gr_term",
+          "gr_course"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "section": "gr_total",
+        "set": {
+          "label": "Term Total",
+          "scope": "term",
+          "attempted": "{hrs|number}",
+          "earned": "{ctp|number}",
+          "gpa_hours": "{msh|number}",
+          "quality_points": "{mhp|number}",
+          "gpa": "{gpa|number}"
+        }
+      },
+      {
+        "name": "undergraduate term total after transfer block",
+        "pattern": "^Term Total\\s+(?:GPA:\\s+(?P<gpa>\\d+\\.\\d+)\\s+)?(?P<hrs>\\d+\\.\\d{2})\\s+(?P<msh>\\d+\\.\\d{2})\\s+(?P<ctp>\\d+\\.\\d{2})\\s+(?P<mhp>\\d+\\.\\d{2})$",
+        "in_section": [
+          "xug_term",
+          "xug_course"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "section": "xug_total",
+        "set": {
+          "label": "Term Total",
+          "scope": "term",
+          "attempted": "{hrs|number}",
+          "earned": "{ctp|number}",
+          "gpa_hours": "{msh|number}",
+          "quality_points": "{mhp|number}",
+          "gpa": "{gpa|number}"
+        }
+      },
+      {
+        "name": "graduate term total after transfer block",
+        "pattern": "^Term Total\\s+(?:GPA:\\s+(?P<gpa>\\d+\\.\\d+)\\s+)?(?P<hrs>\\d+\\.\\d{2})\\s+(?P<msh>\\d+\\.\\d{2})\\s+(?P<ctp>\\d+\\.\\d{2})\\s+(?P<mhp>\\d+\\.\\d{2})$",
+        "in_section": [
+          "xgr_term",
+          "xgr_course"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "section": "xgr_total",
+        "set": {
+          "label": "Term Total",
+          "scope": "term",
+          "attempted": "{hrs|number}",
+          "earned": "{ctp|number}",
+          "gpa_hours": "{msh|number}",
+          "quality_points": "{mhp|number}",
+          "gpa": "{gpa|number}"
+        }
+      },
+      {
+        "name": "undergraduate career line before cumulative total",
+        "pattern": "^(?:(?P<full>(?:Undergraduate|Graduate)\\s+(?P<prog>[A-Z][A-Za-z&./' -]*[A-Za-z&.]))|(?P<plain>Academic Outreach|Rackham))$",
+        "in_section": "ug_total",
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "section": "ug_prog",
+        "set": {
+          "program": {
+            "templates": [
+              "{full}",
+              "{plain}"
+            ]
+          }
+        }
+      },
+      {
+        "name": "graduate career line before cumulative total",
+        "pattern": "^(?:(?P<full>(?:Undergraduate|Graduate)\\s+(?P<prog>[A-Z][A-Za-z&./' -]*[A-Za-z&.]))|(?P<plain>Academic Outreach|Rackham))$",
+        "in_section": "gr_total",
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "section": "gr_prog",
+        "set": {
+          "program": {
+            "templates": [
+              "{full}",
+              "{plain}"
+            ]
+          }
+        }
+      },
+      {
+        "name": "undergraduate career line before cumulative total after transfer block",
+        "pattern": "^(?:(?P<full>(?:Undergraduate|Graduate)\\s+(?P<prog>[A-Z][A-Za-z&./' -]*[A-Za-z&.]))|(?P<plain>Academic Outreach|Rackham))$",
+        "in_section": "xug_total",
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "section": "xug_prog",
+        "set": {
+          "program": {
+            "templates": [
+              "{prog}",
+              "{plain}"
+            ]
+          }
+        }
+      },
+      {
+        "name": "graduate career line before cumulative total after transfer block",
+        "pattern": "^(?:(?P<full>(?:Undergraduate|Graduate)\\s+(?P<prog>[A-Z][A-Za-z&./' -]*[A-Za-z&.]))|(?P<plain>Academic Outreach|Rackham))$",
+        "in_section": "xgr_total",
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "section": "xgr_prog",
+        "set": {
+          "program": {
+            "templates": [
+              "{prog}",
+              "{plain}"
+            ]
+          }
+        }
+      },
+      {
+        "name": "undergraduate cumulative total",
+        "pattern": "^Cumulative Total\\s+(?:GPA:\\s+(?P<gpa>\\d+\\.\\d+)\\s+)?(?P<msh>\\d+\\.\\d{2})\\s+(?P<ctp>\\d+\\.\\d{2})\\s+(?P<mhp>\\d+\\.\\d{2})$",
+        "in_section": [
+          "ug_total",
+          "ug_prog"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "section": "ug_cum",
+        "set": {
+          "label": {
+            "templates": [
+              "{@term.program} Cumulative Total",
+              "Cumulative Total"
+            ]
+          },
+          "scope": "cumulative",
+          "earned": "{ctp|number}",
+          "gpa_hours": "{msh|number}",
+          "quality_points": "{mhp|number}",
+          "gpa": "{gpa|number}"
+        }
+      },
+      {
+        "name": "graduate cumulative total",
+        "pattern": "^Cumulative Total\\s+(?:GPA:\\s+(?P<gpa>\\d+\\.\\d+)\\s+)?(?P<msh>\\d+\\.\\d{2})\\s+(?P<ctp>\\d+\\.\\d{2})\\s+(?P<mhp>\\d+\\.\\d{2})$",
+        "in_section": [
+          "gr_total",
+          "gr_prog"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "section": "gr_cum",
+        "set": {
+          "label": {
+            "templates": [
+              "{@term.program} Cumulative Total",
+              "Cumulative Total"
+            ]
+          },
+          "scope": "cumulative",
+          "earned": "{ctp|number}",
+          "gpa_hours": "{msh|number}",
+          "quality_points": "{mhp|number}",
+          "gpa": "{gpa|number}"
+        }
+      },
+      {
+        "name": "undergraduate cumulative total after transfer block",
+        "pattern": "^Cumulative Total\\s+(?:GPA:\\s+(?P<gpa>\\d+\\.\\d+)\\s+)?(?P<msh>\\d+\\.\\d{2})\\s+(?P<ctp>\\d+\\.\\d{2})\\s+(?P<mhp>\\d+\\.\\d{2})$",
+        "in_section": [
+          "xug_total",
+          "xug_prog"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "section": "xug_cum",
+        "set": {
+          "label": {
+            "templates": [
+              "{@term.program} Cumulative Total",
+              "Cumulative Total"
+            ]
+          },
+          "scope": "cumulative",
+          "earned": "{ctp|number}",
+          "gpa_hours": "{msh|number}",
+          "quality_points": "{mhp|number}",
+          "gpa": "{gpa|number}"
+        }
+      },
+      {
+        "name": "graduate cumulative total after transfer block",
+        "pattern": "^Cumulative Total\\s+(?:GPA:\\s+(?P<gpa>\\d+\\.\\d+)\\s+)?(?P<msh>\\d+\\.\\d{2})\\s+(?P<ctp>\\d+\\.\\d{2})\\s+(?P<mhp>\\d+\\.\\d{2})$",
+        "in_section": [
+          "xgr_total",
+          "xgr_prog"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "section": "xgr_cum",
+        "set": {
+          "label": {
+            "templates": [
+              "{@term.program} Cumulative Total",
+              "Cumulative Total"
+            ]
+          },
+          "scope": "cumulative",
+          "earned": "{ctp|number}",
+          "gpa_hours": "{msh|number}",
+          "quality_points": "{mhp|number}",
+          "gpa": "{gpa|number}"
+        }
+      },
+      {
+        "name": "undergraduate course topic line",
+        "pattern": "^(?!(?:^(?:(?:(?:Undergraduate|Graduate)\\s+(?:[A-Z][A-Za-z&./' -]*[A-Za-z&.]))|(?:Academic Outreach|Rackham))$)|(?:^(?:(?:(?:Undergraduate|Graduate)\\s+(?:[A-Z][A-Za-z&./' -]*[A-Za-z&.]))|(?:Academic Outreach|Rackham))$))(?:^(?!Term Total\\b|Cumulative Total\\b)\\S.*$)",
+        "in_section": "ug_course",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "continue": true,
+        "section": "ug_course",
+        "set": {
+          "notes": "{line}"
+        }
+      },
+      {
+        "name": "graduate course topic line",
+        "pattern": "^(?!Term Total\\b|Cumulative Total\\b)\\S.*$",
+        "in_section": "gr_course",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "continue": true,
+        "section": "gr_course",
+        "set": {
+          "notes": "{line}"
+        }
+      },
+      {
+        "name": "undergraduate course topic line after transfer block",
+        "pattern": "^(?!Term Total\\b|Cumulative Total\\b)\\S.*$",
+        "in_section": "xug_course",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "continue": true,
+        "section": "xug_course",
+        "set": {
+          "notes": "{line}"
+        }
+      },
+      {
+        "name": "graduate course topic line after transfer block",
+        "pattern": "^(?!Term Total\\b|Cumulative Total\\b)\\S.*$",
+        "in_section": "xgr_course",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "continue": true,
+        "section": "xgr_course",
+        "set": {
+          "notes": "{line}"
+        }
+      },
+      {
+        "name": "undergraduate remark: honor",
+        "pattern": "^(?P<date>\\d{2}-[A-Za-z]{3}-\\d{4})\\s+(?P<name>.*\\b(?:[Hh]onou?rs?|Dean.s List|Award|Scholar\\w*|Society|Key|Laude|Distinction|Prize|Medal|Kappa)\\b.*)$",
+        "in_section": "ug_remarks",
+        "action": "honor",
+        "set": {
+          "name": "{name}",
+          "date": "{date|date:%d-%b-%Y}",
+          "notes": "Listed under Undergraduate Remarks"
+        }
+      },
+      {
+        "name": "undergraduate remark: dated event",
+        "pattern": "^(?P<date>\\d{2}-[A-Za-z]{3}-\\d{4})\\s+(?P<name>.+)$",
+        "in_section": "ug_remarks",
+        "action": "event",
+        "set": {
+          "name": "{name}",
+          "date": "{date|date:%d-%b-%Y}",
+          "notes": "Listed under Undergraduate Remarks"
+        }
+      },
+      {
+        "name": "undergraduate remark: other",
+        "pattern": ".+",
+        "in_section": "ug_remarks",
+        "action": "remark",
+        "text": "Undergraduate Remarks: {line}"
+      },
+      {
+        "name": "dissertation without title",
+        "pattern": "^Dissertation:$",
+        "action": "remark",
+        "text": "Dissertation: (no title printed)"
+      },
+      {
+        "name": "dissertation title",
+        "pattern": "^Dissertation:\\s+(?P<title>.+)$",
+        "action": "remark",
+        "text": "Dissertation: {title}"
+      },
+      {
+        "name": "dissertation committee",
+        "pattern": "^Dissertation Committee:(?:\\s+(?P<date>\\d{2}-[A-Za-z]{3}-\\d{4}))?$",
+        "action": "event",
+        "section": "committee",
+        "set": {
+          "name": "Dissertation Committee",
+          "date": "{date|date:%d-%b-%Y}"
+        }
+      },
+      {
+        "name": "dissertation committee member",
+        "pattern": "^[^,]+,[^,]+,\\s*[A-Za-z][A-Za-z -]*$",
+        "in_section": "committee",
+        "action": "event",
+        "continue": true,
+        "separator": "; ",
+        "set": {
+          "notes": "{line}"
+        }
+      },
+      {
+        "name": "graduate remark after committee",
+        "pattern": "^(?P<date>\\d{2}-[A-Za-z]{3}-\\d{4})\\s+(?P<text>.+)$",
+        "in_section": "committee",
+        "action": "remark",
+        "text": "Graduate Remarks: {date} {text}",
+        "section": "gr_remarks"
+      },
+      {
+        "name": "graduate remark (dated)",
+        "pattern": "^(?P<date>\\d{2}-[A-Za-z]{3}-\\d{4})\\s+(?P<text>.+)$",
+        "in_section": "gr_remarks",
+        "action": "remark",
+        "text": "Graduate Remarks: {date} {text}"
+      },
+      {
+        "name": "graduate remark continuation",
+        "pattern": "^(?!(?:^Transfer Course Credit Accepted towards(?:\\s+MSH\\s+CTP\\s+MHP)?$)|(?:^(?:Spring/Summer|Spring-Summer|Fall|Winter|Spring|Summer)\\s+(?:\\d{4})\\s+(?:.+?)\\s+Grade\\s+Hours\\s+MSH\\s+CTP\\s+MHP$)|(?:^(?:Spring/Summer|Spring-Summer|Fall|Winter|Spring|Summer)\\s+(?:\\d{4})\\s+(?:.+?)\\s+Grade\\s+Hours\\s+MSH\\s+CTP\\s+MHP$)|(?:^(?:Spring/Summer|Spring-Summer|Fall|Winter|Spring|Summer)\\s+(?:\\d{4})\\s+(?:(?:Undergraduate|Graduate)\\s+)?(?:.+?)\\s+Grade\\s+Hours\\s+MSH\\s+CTP\\s+MHP$)|(?:^(?:[A-Z][A-Z&]{1,9})\\s+(?:\\d{3}[A-Z]?)\\s+(?:.+?)\\s+(?:(?:(?:IL?)?[A-E][+-]?|EX|GD|PS|LP|CR|NC|NRC|NR|IPL|ED|VI|IL|##|[FSUPIWYM])\\s+)?(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})$)|(?:^(?:[A-Z][A-Z&]{1,9})\\s+(?:\\d{3}[A-Z]?)\\s+(?:.+?)\\s+(?:(?:(?:IL?)?[A-E][+-]?|EX|GD|PS|LP|CR|NC|NRC|NR|IPL|ED|VI|IL|##|[FSUPIWYM])\\s+)?(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})$)|(?:^(?:[A-Z][A-Z&]{1,9})\\s+(?:\\d{3}[A-Z]?)\\s+(?:.+?)\\s+(?:(?:(?:IL?)?[A-E][+-]?|EX|GD|PS|LP|CR|NC|NRC|NR|IPL|ED|VI|IL|##|[FSUPIWYM])\\s+)?(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})$)|(?:^Term Total\\s+(?:GPA:\\s+(?:\\d+\\.\\d+)\\s+)?(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})$)|(?:^Term Total\\s+(?:GPA:\\s+(?:\\d+\\.\\d+)\\s+)?(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})$)|(?:^Term Total\\s+(?:GPA:\\s+(?:\\d+\\.\\d+)\\s+)?(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})$)|(?:^(?:(?:(?:Undergraduate|Graduate)\\s+(?:[A-Z][A-Za-z&./' -]*[A-Za-z&.]))|(?:Academic Outreach|Rackham))$)|(?:^(?:(?:(?:Undergraduate|Graduate)\\s+(?:[A-Z][A-Za-z&./' -]*[A-Za-z&.]))|(?:Academic Outreach|Rackham))$)|(?:^(?:(?:(?:Undergraduate|Graduate)\\s+(?:[A-Z][A-Za-z&./' -]*[A-Za-z&.]))|(?:Academic Outreach|Rackham))$)|(?:^Cumulative Total\\s+(?:GPA:\\s+(?:\\d+\\.\\d+)\\s+)?(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})$)|(?:^Cumulative Total\\s+(?:GPA:\\s+(?:\\d+\\.\\d+)\\s+)?(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})$)|(?:^Cumulative Total\\s+(?:GPA:\\s+(?:\\d+\\.\\d+)\\s+)?(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})$))(?:.+)",
+        "in_section": "gr_remarks",
+        "action": "remark",
+        "continue": true,
+        "text": "{line}"
+      },
+      {
+        "name": "remark",
+        "pattern": "^(?!(?:^Transfer Course Credit Accepted towards(?:\\s+MSH\\s+CTP\\s+MHP)?$)|(?:^(?:Spring/Summer|Spring-Summer|Fall|Winter|Spring|Summer)\\s+(?:\\d{4})\\s+(?:(?:Undergraduate|Graduate)\\s+)?(?:.+?)\\s+Grade\\s+Hours\\s+MSH\\s+CTP\\s+MHP$)|(?:^(?:[A-Z][A-Z&]{1,9})\\s+(?:\\d{3}[A-Z]?)\\s+(?:.+?)\\s+(?:(?:(?:IL?)?[A-E][+-]?|EX|GD|PS|LP|CR|NC|NRC|NR|IPL|ED|VI|IL|##|[FSUPIWYM])\\s+)?(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})$)|(?:^Term Total\\s+(?:GPA:\\s+(?:\\d+\\.\\d+)\\s+)?(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})$)|(?:^(?:(?:(?:Undergraduate|Graduate)\\s+(?:[A-Z][A-Za-z&./' -]*[A-Za-z&.]))|(?:Academic Outreach|Rackham))$)|(?:^Cumulative Total\\s+(?:GPA:\\s+(?:\\d+\\.\\d+)\\s+)?(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})\\s+(?:\\d+\\.\\d{2})$))(?:.+)",
+        "in_section": "remarks",
+        "action": "remark",
+        "text": "{line}"
+      }
+    ]
+  },
+  "grading_scale": [
+    {
+      "grade": "A+",
+      "points": 9.0,
+      "description": "9.0 grading scale (A+ through B = Pass unless otherwise noted)",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "A",
+      "points": 8.0,
+      "description": "9.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "A-",
+      "points": 7.0,
+      "description": "9.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "B+",
+      "points": 6.0,
+      "description": "9.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "B",
+      "points": 5.0,
+      "description": "9.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "B-",
+      "points": 4.0,
+      "description": "9.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "C+",
+      "points": 3.0,
+      "description": "9.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "C",
+      "points": 2.0,
+      "description": "9.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "C-",
+      "points": 1.0,
+      "description": "9.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "D+",
+      "points": 0.0,
+      "description": "9.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "D",
+      "points": 0.0,
+      "description": "9.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "D-",
+      "points": 0.0,
+      "description": "9.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "E",
+      "points": 0.0,
+      "description": "9.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "A+",
+      "points": 4.4,
+      "description": "4.4 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "A",
+      "points": 4.0,
+      "description": "4.4 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "A-",
+      "points": 3.7,
+      "description": "4.4 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "B+",
+      "points": 3.4,
+      "description": "4.4 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "B",
+      "points": 3.0,
+      "description": "4.4 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "B-",
+      "points": 2.7,
+      "description": "4.4 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "C+",
+      "points": 2.4,
+      "description": "4.4 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "C",
+      "points": 2.0,
+      "description": "4.4 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "C-",
+      "points": 1.7,
+      "description": "4.4 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "D+",
+      "points": 1.4,
+      "description": "4.4 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "D",
+      "points": 1.0,
+      "description": "4.4 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "D-",
+      "points": 0.7,
+      "description": "4.4 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "E",
+      "points": 0.0,
+      "description": "4.4 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "A+",
+      "points": 4.3,
+      "description": "4.3 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "A",
+      "points": 4.0,
+      "description": "4.3 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "A-",
+      "points": 3.7,
+      "description": "4.3 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "B+",
+      "points": 3.3,
+      "description": "4.3 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "B",
+      "points": 3.0,
+      "description": "4.3 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "B-",
+      "points": 2.7,
+      "description": "4.3 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "C+",
+      "points": 2.3,
+      "description": "4.3 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "C",
+      "points": 2.0,
+      "description": "4.3 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "C-",
+      "points": 1.7,
+      "description": "4.3 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "D+",
+      "points": 1.3,
+      "description": "4.3 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "D",
+      "points": 1.0,
+      "description": "4.3 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "D-",
+      "points": 0.7,
+      "description": "4.3 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "E",
+      "points": 0.0,
+      "description": "4.3 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "A+",
+      "points": 4.0,
+      "description": "4.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "A",
+      "points": 4.0,
+      "description": "4.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "A-",
+      "points": 3.7,
+      "description": "4.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "B+",
+      "points": 3.3,
+      "description": "4.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "B",
+      "points": 3.0,
+      "description": "4.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "B-",
+      "points": 2.7,
+      "description": "4.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "C+",
+      "points": 2.3,
+      "description": "4.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "C",
+      "points": 2.0,
+      "description": "4.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "C-",
+      "points": 1.7,
+      "description": "4.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "D+",
+      "points": 1.3,
+      "description": "4.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "D",
+      "points": 1.0,
+      "description": "4.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "D-",
+      "points": 0.7,
+      "description": "4.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "E",
+      "points": 0.0,
+      "description": "4.0 grading scale",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "EX",
+      "points": null,
+      "description": "Excellent (Pass)",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "GD",
+      "points": null,
+      "description": "Good (Pass)",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "PS",
+      "points": null,
+      "description": "Pass",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "LP",
+      "points": null,
+      "description": "Low Pass (Pass)",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "F",
+      "points": null,
+      "description": "Fail",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "CR",
+      "points": null,
+      "description": "Credit",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "NC",
+      "points": null,
+      "description": "No credit",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "S",
+      "points": null,
+      "description": "Satisfactory",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "U",
+      "points": null,
+      "description": "Unsatisfactory",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "P",
+      "points": null,
+      "description": "Pass",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "I",
+      "points": null,
+      "description": "Incomplete (I or IL followed by a letter grade indicates an initial incomplete that has been given a final grade)",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "NR",
+      "points": null,
+      "description": "No grade reported",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "##",
+      "points": null,
+      "description": "Grade not submitted",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "ED",
+      "points": null,
+      "description": "Unofficial drop",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "VI",
+      "points": null,
+      "description": "Audit or Visit",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "W",
+      "points": null,
+      "description": "Withdrew from course",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "Y",
+      "points": null,
+      "description": "Extended multi-term class",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "M",
+      "points": null,
+      "description": "Marginal",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "IPL",
+      "points": null,
+      "description": "Incomplete Permanent Lapse",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "NRC",
+      "points": null,
+      "description": "No Record COVID, a non-passing grade used to address a global pandemic",
+      "counts_in_gpa": null
+    }
+  ],
+  "notes": [
+    "Read by App-parser (University of Michigan 'Academic Transcript' layout, no AI). Values are as printed; course credits are the Hours column, credits earned the CTP column and quality points the MHP column. The legend prints the Fail grade twice; the grading scale lists it once."
+  ],
+  "learned": {
+    "date": "2026-10-27",
+    "by": "claude-opus-5-5",
+    "tries": 3,
+    "verified_on": "2 transcripts (App-parser reproduced Claude's reading exactly)",
+    "repaired": "2026-10-30 by hand: free-text rules exclude the headings the heading test found they would take; output on the samples unchanged"
+  }
+}

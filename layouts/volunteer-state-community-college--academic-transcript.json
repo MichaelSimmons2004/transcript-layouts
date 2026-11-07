@@ -1,0 +1,1640 @@
+{
+  "recipe_format": 1,
+  "id": "volunteer-state-community-college--academic-transcript",
+  "name": "Volunteer State Community College - Academic Transcript (two-column Courier layout)",
+  "institution": "Volunteer State Community College",
+  "description": "Volunteer State Community College transcript. The header block holds the college address and the labels 'Record of:', 'Issued To:', 'Date Issued:', 'Date of Birth:', 'SSN:' and 'Level:'. The record is printed in two Courier columns with no dividing rule, split at x=309, and every page has a legal footer. The left column of page 1 opens with front matter: 'Course Level:', 'High School:', and 'Current Program' with Major and Maj/Concentration lines. Optional 'Events:' lines with 'Decision:/Grade:' follow. Memberships ('Member of ...') are recorded as honors and other events as academic events. Optional 'Comments:' lines and 'Degree Awarded' blocks (degrees or certificates) follow, each with Ehrs/QPts, GPA-Hrs/GPA, 'Primary Degree', Major, Maj/Concentration and 'Inst. Honors' lines. Next comes the optional 'TRANSFER CREDIT ACCEPTED BY THE INSTITUTION:' block with transfer terms headed by a date range (MM/YY-MM/YY and the school) or a season code and two-digit year followed by the school. Ranges within one year in 2000-2049 get a season and year; ranges over several years and season-code headings get no year; earlier two-digit ranges keep the school in the term name and get no season or year; single-month earlier ranges are named after the transfer heading. Transfer blocks may continue in the next column under 'Transfer Information continued:'. Then come the PRE-SYSTEM summary hours and 'INSTITUTION CREDIT:'. Institutional terms are headed '<Season> Term YYYY' (term may be lower case), and each course row (with an optional '*' remedial marker after the number and an optional R repeat code E/I; E rows are flagged as excluded from GPA) is followed by a quality-points line. Each term ends with 'Total Earned Credits', a standing line, an optional Dean's List / Honor Roll line and a TERM COMBINED block over two lines (Ehrs/GPA-H, then QPts/GPA). When a right column starts higher than usual, its first lines are overprinted on the column headings, the underscore rule and the asterisk separator (letter-interleaved text); underscores are removed from every line and dedicated rules read the overprinted TERM COMBINED block and term heading. 'TRANSCRIPT TOTALS' holds the INSTITUTION/TRANSFER/OVERALL rows and their COMBINED repeats. The last page is a 'KEY TO TRANSCRIPT' legend, which is skipped; its notes and the footer notice are added as one fixed remark at END OF TRANSCRIPT. Built from eight samples.",
+  "layout": {
+    "type": "columns_at",
+    "split_x": [
+      309
+    ],
+    "header_bottom": 185,
+    "footer_top": 690,
+    "skip_pages_containing": [
+      "KEY TO TRANSCRIPT"
+    ],
+    "remove": [
+      "_"
+    ]
+  },
+  "detect": {
+    "header_contains": [
+      "1480 Nashville Pike",
+      "Record of:",
+      "Date Issued:"
+    ]
+  },
+  "constants": {
+    "institution.name": "Volunteer State Community College",
+    "institution.address": "1480 Nashville Pike, Gallatin, TN 37066",
+    "institution.phone": "888.335.8722",
+    "institution.website": "www.volstate.edu",
+    "institution.issuing_office": "Office of Records and Registration"
+  },
+  "fields": [
+    {
+      "field": "student.name_as_printed",
+      "pattern": "^(?:Record of:\\s*)?(?!Page|Record|Issued|Date|SSN|Level|www|VOLUNTEER)(?!.*\\d{5})([A-Z][A-Za-z0-9.,'\\- ]*[A-Za-z0-9.])$"
+    },
+    {
+      "field": "student.name",
+      "pattern": "^(?:Record of:\\s*)?(?!Page|Record|Issued|Date|SSN|Level|www|VOLUNTEER)(?!.*\\d{5})([A-Z][A-Za-z0-9.,'\\- ]*[A-Za-z0-9.])$"
+    },
+    {
+      "field": "document.issue_date",
+      "pattern": "(\\d{2}-[A-Z]{3}-\\d{4})",
+      "value": "{1|date:%d-%b-%Y}"
+    }
+  ],
+  "required": [
+    "student.name_as_printed"
+  ],
+  "tables": {
+    "seasons": {
+      "Fall": "fall",
+      "Winter": "winter",
+      "Winer": "winter",
+      "Spring": "spring",
+      "Summer": "summer"
+    },
+    "starred_seasons": {
+      "F*a*l*l": "Fall",
+      "W*i*n*t*e*r": "Winter",
+      "W*i*n*e*r": "Winer",
+      "S*p*r*i*n*g": "Spring",
+      "S*u*m*m*e*r": "Summer"
+    },
+    "starred_term": {
+      "T*e*r*m": "Term",
+      "t*e*r*m": "term"
+    },
+    "month_seasons": {
+      "01": "spring",
+      "02": "spring",
+      "03": "spring",
+      "04": "spring",
+      "05": "summer",
+      "06": "summer",
+      "07": "summer",
+      "08": "fall",
+      "09": "fall",
+      "10": "fall",
+      "11": "fall",
+      "12": "fall"
+    },
+    "transfer_season_codes": {
+      "F": "fall",
+      "FA": "fall",
+      "SP": "spring",
+      "SU": "summer",
+      "W": "winter",
+      "WI": "winter"
+    },
+    "two_digit_years": {
+      "00": 2000,
+      "01": 2001,
+      "02": 2002,
+      "03": 2003,
+      "04": 2004,
+      "05": 2005,
+      "06": 2006,
+      "07": 2007,
+      "08": 2008,
+      "09": 2009,
+      "10": 2010,
+      "11": 2011,
+      "12": 2012,
+      "13": 2013,
+      "14": 2014,
+      "15": 2015,
+      "16": 2016,
+      "17": 2017,
+      "18": 2018,
+      "19": 2019,
+      "20": 2020,
+      "21": 2021,
+      "22": 2022,
+      "23": 2023,
+      "24": 2024,
+      "25": 2025,
+      "26": 2026,
+      "27": 2027,
+      "28": 2028,
+      "29": 2029,
+      "30": 2030,
+      "31": 2031,
+      "32": 2032,
+      "33": 2033,
+      "34": 2034,
+      "35": 2035,
+      "36": 2036,
+      "37": 2037,
+      "38": 2038,
+      "39": 2039,
+      "40": 2040,
+      "41": 2041,
+      "42": 2042,
+      "43": 2043,
+      "44": 2044,
+      "45": 2045,
+      "46": 2046,
+      "47": 2047,
+      "48": 2048,
+      "49": 2049,
+      "50": 1950,
+      "51": 1951,
+      "52": 1952,
+      "53": 1953,
+      "54": 1954,
+      "55": 1955,
+      "56": 1956,
+      "57": 1957,
+      "58": 1958,
+      "59": 1959,
+      "60": 1960,
+      "61": 1961,
+      "62": 1962,
+      "63": 1963,
+      "64": 1964,
+      "65": 1965,
+      "66": 1966,
+      "67": 1967,
+      "68": 1968,
+      "69": 1969,
+      "70": 1970,
+      "71": 1971,
+      "72": 1972,
+      "73": 1973,
+      "74": 1974,
+      "75": 1975,
+      "76": 1976,
+      "77": 1977,
+      "78": 1978,
+      "79": 1979,
+      "80": 1980,
+      "81": 1981,
+      "82": 1982,
+      "83": 1983,
+      "84": 1984,
+      "85": 1985,
+      "86": 1986,
+      "87": 1987,
+      "88": 1988,
+      "89": 1989,
+      "90": 1990,
+      "91": 1991,
+      "92": 1992,
+      "93": 1993,
+      "94": 1994,
+      "95": 1995,
+      "96": 1996,
+      "97": 1997,
+      "98": 1998,
+      "99": 1999
+    },
+    "summary_scopes": {
+      "INSTITUTION": "institutional",
+      "TRANSFER": "transfer",
+      "OVERALL": "overall"
+    },
+    "r_notes": {
+      "I": "R (Repeat) column: I = Hours and quality points included in GPA",
+      "E": "R (Repeat) column: E = Hours and quality points excluded in GPA"
+    },
+    "r_flags": {
+      "I": "repeated",
+      "E": "repeated"
+    }
+  },
+  "lines": {
+    "ignore": [
+      "^_+$",
+      "^PTS$",
+      "^\\*+\\s*CONTINUED ON (?:NEXT COLUMN|PAGE \\d+)\\s*\\*+$",
+      "^Institution Information continued:$",
+      "^\\s*$",
+      "^I\\s*S\\s*n\\s*U\\s*s\\s*B\\s*t\\s*J\\s*i\\s*t\\s*u\\s*N\\s*t\\s*O\\s*i\\s*\\.\\s*o\\s*n\\s*I\\s*n\\s*f\\s*o\\s*r\\s*m\\s*a\\s*t\\s*i\\s*o\\s*n\\s*c\\s*C\\s*o\\s*O\\s*n\\s*U\\s*t\\s*R\\s*i\\s*S\\s*n\\s*E\\s*u\\s*e\\s*T\\s*d\\s*I\\s*:\\s*T\\s*L\\s*E(?:\\s+CRED\\s+GRD\\s+R)?$",
+      "^Transfer Information continued:$"
+    ],
+    "rules": [
+      {
+        "name": "course level",
+        "pattern": "^Course Level:\\s*Undergraduate$",
+        "action": "remark",
+        "text": "{line}",
+        "section": "front"
+      },
+      {
+        "name": "high school",
+        "pattern": "^High School:\\s*(?P<school>\\S.*?)(?:\\s+(?P<date>\\d{2}-[A-Z]{3}-\\d{4}))?\\s*$",
+        "action": "prior_education",
+        "set": {
+          "institution": "{school}",
+          "credential": "High School",
+          "date": "{date|date:%d-%b-%Y}"
+        }
+      },
+      {
+        "name": "current program heading",
+        "pattern": "^Current Program$",
+        "in_section": [
+          "front",
+          "current_program",
+          "degree",
+          "events",
+          "comments",
+          "comments_more"
+        ],
+        "action": "ignore",
+        "section": "current_program"
+      },
+      {
+        "name": "certificate awarded",
+        "pattern": "^Degree Awarded\\s+(?P<degree>Certificate\\b.*?)\\s+(?P<date>\\d{2}-[A-Z]{3}-\\d{4})$",
+        "in_section": [
+          "front",
+          "current_program",
+          "degree",
+          "events",
+          "comments",
+          "comments_more"
+        ],
+        "action": "start_program",
+        "section": "degree",
+        "set": {
+          "name": "{degree}",
+          "credential_type": "certificate",
+          "degree_name": "{degree}",
+          "academic_level": "Undergraduate",
+          "status": "awarded",
+          "date_awarded": "{date|date:%d-%b-%Y}",
+          "notes": "Printed as '{line}'"
+        }
+      },
+      {
+        "name": "degree awarded",
+        "pattern": "^Degree Awarded\\s+(?P<degree>\\S.*?)\\s+(?P<date>\\d{2}-[A-Z]{3}-\\d{4})$",
+        "in_section": [
+          "front",
+          "current_program",
+          "degree",
+          "events",
+          "comments",
+          "comments_more"
+        ],
+        "action": "start_program",
+        "section": "degree",
+        "set": {
+          "name": "{degree}",
+          "credential_type": "degree",
+          "degree_name": "{degree}",
+          "degree_level": "{@degree_name|degree_level}",
+          "academic_level": "Undergraduate",
+          "status": "awarded",
+          "date_awarded": "{date|date:%d-%b-%Y}",
+          "notes": "Printed as '{line}'"
+        }
+      },
+      {
+        "name": "current program: degree",
+        "pattern": "^(?P<deg>(?:Associate|Bachelor|Master)s? (?:of|in) [A-Z][A-Za-z&,' ]*?)\\s*$",
+        "in_section": "current_program",
+        "action": "start_program",
+        "set": {
+          "name": "{deg}",
+          "credential_type": "degree",
+          "degree_name": "{deg}",
+          "degree_level": "{deg|degree_level}",
+          "academic_level": "Undergraduate",
+          "status": "in_progress",
+          "notes": "Printed under 'Current Program'"
+        }
+      },
+      {
+        "name": "current program: non-degree",
+        "pattern": "^(?P<name>Non[- ]?Degree(?: Seeking)?|Undeclared)\\s*$",
+        "in_section": "current_program",
+        "action": "start_program",
+        "set": {
+          "name": "{name}",
+          "credential_type": "major",
+          "academic_level": "Undergraduate",
+          "status": "in_progress",
+          "notes": "Printed under 'Current Program'"
+        }
+      },
+      {
+        "name": "degree hours line",
+        "pattern": "^Ehrs:\\s*\\d*\\.\\d+\\s+QPts:\\s*\\d*\\.\\d+$",
+        "in_section": "degree",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "add_note": "Printed with the degree: {line}"
+      },
+      {
+        "name": "degree GPA line",
+        "pattern": "^GPA-Hrs:\\s*\\d*\\.\\d+\\s+GPA:\\s*(?P<gpa>\\d*\\.\\d+)$",
+        "in_section": "degree",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "gpa": "{gpa|number}"
+        },
+        "add_note": "Printed with the degree: {line}"
+      },
+      {
+        "name": "primary degree label",
+        "pattern": "^Primary Degree$",
+        "in_section": "degree",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "add_note": "{line}"
+      },
+      {
+        "name": "major",
+        "pattern": "^Major\\s*:\\s*(?P<major>\\S.*?)\\s*$",
+        "in_section": [
+          "current_program",
+          "degree"
+        ],
+        "requires": [
+          "program"
+        ],
+        "when_empty": "field_of_study",
+        "action": "program",
+        "set": {
+          "field_of_study": "{major}"
+        }
+      },
+      {
+        "name": "second major",
+        "pattern": "^Major\\s*:\\s*(?P<major>\\S.*?)\\s*$",
+        "in_section": [
+          "current_program",
+          "degree"
+        ],
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "additional_fields": "Major : {major}"
+        }
+      },
+      {
+        "name": "concentration (current program)",
+        "pattern": "^Maj/Concentration\\s*:\\s*(?P<conc>\\S.*?)\\s*$",
+        "in_section": "current_program",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "additional_fields": "{conc}"
+        },
+        "add_note": "{line}"
+      },
+      {
+        "name": "concentration (degree)",
+        "pattern": "^Maj/Concentration\\s*:\\s*(?P<conc>\\S.*?)\\s*$",
+        "in_section": "degree",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "additional_fields": "Maj/Concentration : {conc}"
+        },
+        "add_note": "{line}"
+      },
+      {
+        "name": "minor",
+        "pattern": "^Minor\\s*:\\s*(?P<m>\\S.*?)\\s*$",
+        "in_section": [
+          "current_program",
+          "degree"
+        ],
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "additional_fields": "Minor : {m}"
+        }
+      },
+      {
+        "name": "institutional honors",
+        "pattern": "^Inst\\.\\s*Honors:\\s*(?P<h>\\S.*?)\\s*$",
+        "in_section": [
+          "current_program",
+          "degree"
+        ],
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "honors": "{h}"
+        }
+      },
+      {
+        "name": "events: membership",
+        "pattern": "^Events:\\s*(?P<ev>Member of\\s+\\S.*?)\\s*$",
+        "in_section": [
+          "front",
+          "current_program",
+          "degree",
+          "events"
+        ],
+        "action": "honor",
+        "section": "events",
+        "set": {
+          "name": "{ev}",
+          "kind": "membership",
+          "notes": "Printed under 'Events'"
+        }
+      },
+      {
+        "name": "events: other event",
+        "pattern": "^Events:\\s*(?P<ev>\\S.*?)\\s*$",
+        "in_section": [
+          "front",
+          "current_program",
+          "degree",
+          "events"
+        ],
+        "action": "event",
+        "section": "events",
+        "set": {
+          "name": "{ev}",
+          "notes": "Printed under 'Events'"
+        }
+      },
+      {
+        "name": "events: blank decision and grade",
+        "pattern": "^Decision:\\s*Grade:\\s*$",
+        "in_section": "events",
+        "action": "ignore"
+      },
+      {
+        "name": "comments heading",
+        "pattern": "^Comments:$",
+        "in_section": [
+          "front",
+          "current_program",
+          "degree",
+          "events"
+        ],
+        "action": "ignore",
+        "section": "comments"
+      },
+      {
+        "name": "column headings after front matter",
+        "pattern": "^SUBJ\\s+NO\\.\\s+COURSE\\s+TITLE\\s+CRED\\s+GRD\\s+R$",
+        "in_section": [
+          "front",
+          "current_program",
+          "degree",
+          "events",
+          "comments",
+          "comments_more"
+        ],
+        "action": "ignore",
+        "section": "body"
+      },
+      {
+        "name": "column headings",
+        "pattern": "^SUBJ\\s+NO\\.\\s+COURSE\\s+TITLE\\s+CRED\\s+GRD\\s+R$",
+        "action": "ignore"
+      },
+      {
+        "name": "transfer heading",
+        "pattern": "^TRANSFER CREDIT ACCEPTED BY THE INSTITUTION:$",
+        "action": "ignore",
+        "section": "transfer"
+      },
+      {
+        "name": "pre-system institution summary (after single-month or coded transfer)",
+        "pattern": "^PRE-SYSTEM INSTITUTION SUMMARY HOURS:$",
+        "in_section": [
+          "transfer_cert",
+          "transfer_term_code"
+        ],
+        "action": "start_term",
+        "section": "presys_inst",
+        "set": {
+          "name": "PRE-SYSTEM INSTITUTION SUMMARY HOURS",
+          "term_type": "other",
+          "academic_level": "Undergraduate"
+        }
+      },
+      {
+        "name": "pre-system institution summary",
+        "pattern": "^PRE-SYSTEM INSTITUTION SUMMARY HOURS:$",
+        "action": "start_term",
+        "section": "presys_inst",
+        "set": {
+          "name": "PRE-SYSTEM INSTITUTION SUMMARY HOURS",
+          "term_type": "other",
+          "institution": "Volunteer State Community College",
+          "academic_level": "Undergraduate"
+        }
+      },
+      {
+        "name": "pre-system transfer summary",
+        "pattern": "^PRE-SYSTEM TRANSFER SUMMARY HOURS:$",
+        "action": "start_term",
+        "section": "presys_transfer",
+        "set": {
+          "name": "PRE-SYSTEM TRANSFER SUMMARY HOURS",
+          "term_type": "transfer",
+          "academic_level": "Undergraduate"
+        }
+      },
+      {
+        "name": "institution credit heading",
+        "pattern": "^INSTITUTION CREDIT:$",
+        "action": "ignore",
+        "section": "body"
+      },
+      {
+        "name": "transcript totals heading",
+        "pattern": "^\\*+\\s*TRANSCRIPT TOTALS\\s*\\*+$",
+        "action": "ignore",
+        "section": "totals"
+      },
+      {
+        "name": "end of transcript",
+        "pattern": "^\\*+\\s*END OF TRANSCRIPT\\s*\\*+$",
+        "action": "remark",
+        "section": "end",
+        "text": "VOLUNTEER STATE COMMUNITY COLLEGE is a public two-year community college and is fully accredited by the Southern Association of Colleges and Schools. R (Repeat) Grade Designation Column: E = Hours and quality points excluded in GPA; I = Hours and quality points included in GPA. CALENDAR SYSTEMS–All course work completed prior to Fall, 1988, is under the Quarter System. All course work completed after Summer, 1988, is under the Semester System. The Quality Grade Point Average is calculated by using Quality Hours and Quality Points. TRANSFER COURSES-Transfer hours are counted for degree programs but are not computed in VSCC's GPA. GOOD STANDING-Unless Otherwise noted, student is in good academic standing. Course Numbers: 040-090 or 0100-0999 Developmental or Remedial courses (Such courses do not carry credit toward a degree.); 100-199 or 1000-1999 Freshman Level; 200-299 or 2000-2999 Sophomore Level. This electronic transcript is not official without the signature of the College Registrar and should not be considered valid without the blue and red watermark behind the text. Printed copies are not official and will have the word COPY repeated on the document as a watermark."
+      },
+      {
+        "name": "comment first line (program comment)",
+        "pattern": "^(?!(?:Fall|Winter|Winer|Spring|Summer)\\s+[Tt]erm\\s+\\d{4}$|Events:|Comments:$|Current Program$|Degree Awarded\\s|\\*|\\d{2}/\\d{2}-\\d{2}/\\d{2}\\s|(?:F|FA|SP|SU|W|WI)\\s+\\d{2}\\s)\\S.*$",
+        "in_section": "comments",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "comments": "{line}"
+        },
+        "section": "comments_more"
+      },
+      {
+        "name": "comment more lines (program comment)",
+        "pattern": "^(?!(?:Fall|Winter|Winer|Spring|Summer)\\s+[Tt]erm\\s+\\d{4}$|Events:|Comments:$|Current Program$|Degree Awarded\\s|\\*|\\d{2}/\\d{2}-\\d{2}/\\d{2}\\s|(?:F|FA|SP|SU|W|WI)\\s+\\d{2}\\s)\\S.*$",
+        "in_section": "comments_more",
+        "requires": [
+          "program"
+        ],
+        "action": "program",
+        "set": {
+          "comments": "{line}"
+        }
+      },
+      {
+        "name": "comment first line",
+        "pattern": "^(?!(?:Fall|Winter|Winer|Spring|Summer)\\s+[Tt]erm\\s+\\d{4}$|Events:|Comments:$|Current Program$|Degree Awarded\\s|\\*|\\d{2}/\\d{2}-\\d{2}/\\d{2}\\s|(?:F|FA|SP|SU|W|WI)\\s+\\d{2}\\s)\\S.*$",
+        "in_section": "comments",
+        "action": "remark",
+        "text": "{line}",
+        "section": "comments_more"
+      },
+      {
+        "name": "comment more lines",
+        "pattern": "^(?!(?:Fall|Winter|Winer|Spring|Summer)\\s+[Tt]erm\\s+\\d{4}$|Events:|Comments:$|Current Program$|Degree Awarded\\s|\\*|\\d{2}/\\d{2}-\\d{2}/\\d{2}\\s|(?:F|FA|SP|SU|W|WI)\\s+\\d{2}\\s)\\S.*$",
+        "in_section": "comments_more",
+        "action": "remark",
+        "text": "{line}",
+        "continue": true
+      },
+      {
+        "name": "transfer term heading (zero dates)",
+        "pattern": "^00/00-00/00\\s+(?P<school>\\S.*?)\\s*$",
+        "in_section": [
+          "transfer",
+          "transfer_cert",
+          "transfer_term_code"
+        ],
+        "action": "start_term",
+        "section": "transfer_cert",
+        "set": {
+          "name": "{school}",
+          "start_date": "00/00",
+          "end_date": "00/00",
+          "term_type": "transfer",
+          "institution": "{school}",
+          "academic_level": "Undergraduate",
+          "notes": "Printed under 'TRANSFER CREDIT ACCEPTED BY THE INSTITUTION:' with dates '00/00-00/00'"
+        }
+      },
+      {
+        "name": "transfer term heading (single-month range after zero-dated or single-month block)",
+        "pattern": "^(?P<sm>\\d{2})/(?P<sy>[5-9]\\d)-(?P=sm)/(?P=sy)\\s+(?P<school>\\S.*?)\\s*$",
+        "in_section": "transfer_cert",
+        "action": "start_term",
+        "section": "transfer_cert",
+        "set": {
+          "name": "{school}",
+          "season": {
+            "template": "{sm}",
+            "map": "month_seasons"
+          },
+          "year": {
+            "template": "{sy}",
+            "map": "two_digit_years"
+          },
+          "start_date": "{sm}/{sy}",
+          "end_date": "{sm}/{sy}",
+          "term_type": "transfer",
+          "institution": "{school}",
+          "academic_level": "Undergraduate",
+          "notes": "Printed dates: {sm}/{sy}-{sm}/{sy}."
+        }
+      },
+      {
+        "name": "transfer term heading (single-month range, other two-digit years)",
+        "pattern": "^(?P<sm>\\d{2})/(?P<sy>[5-9]\\d)-(?P=sm)/(?P=sy)\\s+(?P<school>\\S.*?)\\s*$",
+        "in_section": [
+          "transfer",
+          "transfer_cert",
+          "transfer_term_code"
+        ],
+        "action": "start_term",
+        "section": "transfer_cert",
+        "set": {
+          "name": "TRANSFER CREDIT ACCEPTED BY THE INSTITUTION: {school}",
+          "start_date": "{sm}/{sy}",
+          "end_date": "{sm}/{sy}",
+          "term_type": "transfer",
+          "institution": "{school}",
+          "academic_level": "Undergraduate",
+          "notes": "Printed dates: {sm}/{sy}-{sm}/{sy}."
+        }
+      },
+      {
+        "name": "transfer term heading (2000-2049, range over several years)",
+        "pattern": "^(?P<sm>\\d{2})/(?P<sy>[0-4]\\d)-(?P<em>\\d{2})/(?!(?P=sy)\\s)(?P<ey>\\d{2})\\s+(?P<school>\\S.*?)\\s*$",
+        "in_section": [
+          "transfer",
+          "transfer_cert",
+          "transfer_term_code"
+        ],
+        "action": "start_term",
+        "section": "transfer",
+        "set": {
+          "name": "{sm}/{sy}-{em}/{ey}",
+          "start_date": "{sm}/{sy}",
+          "end_date": "{em}/{ey}",
+          "term_type": "transfer",
+          "institution": "{school}",
+          "academic_level": "Undergraduate",
+          "notes": "Printed under 'TRANSFER CREDIT ACCEPTED BY THE INSTITUTION:'"
+        }
+      },
+      {
+        "name": "transfer term heading (2000-2049)",
+        "pattern": "^(?P<sm>\\d{2})/(?P<sy>[0-4]\\d)-(?P<em>\\d{2})/(?P<ey>\\d{2})\\s+(?P<school>\\S.*?)\\s*$",
+        "in_section": [
+          "transfer",
+          "transfer_cert",
+          "transfer_term_code"
+        ],
+        "action": "start_term",
+        "section": "transfer",
+        "set": {
+          "name": "{sm}/{sy}-{em}/{ey}",
+          "season": {
+            "template": "{sm}",
+            "map": "month_seasons"
+          },
+          "year": {
+            "template": "{sy}",
+            "map": "two_digit_years"
+          },
+          "start_date": "{sm}/{sy}",
+          "end_date": "{em}/{ey}",
+          "term_type": "transfer",
+          "institution": "{school}",
+          "academic_level": "Undergraduate",
+          "notes": "TRANSFER CREDIT ACCEPTED BY THE INSTITUTION"
+        }
+      },
+      {
+        "name": "transfer term heading (other two-digit years)",
+        "pattern": "^(?P<sm>\\d{2})/(?P<sy>[5-9]\\d)-(?P<em>\\d{2})/(?P<ey>\\d{2})\\s+(?P<school>\\S.*?)\\s*$",
+        "in_section": [
+          "transfer",
+          "transfer_cert",
+          "transfer_term_code"
+        ],
+        "action": "start_term",
+        "section": "transfer",
+        "set": {
+          "name": "{sm}/{sy}-{em}/{ey} {school}",
+          "start_date": "{sm}/{sy}",
+          "end_date": "{em}/{ey}",
+          "term_type": "transfer",
+          "institution": "{school}",
+          "academic_level": "Undergraduate",
+          "notes": "Printed under 'TRANSFER CREDIT ACCEPTED BY THE INSTITUTION:'."
+        }
+      },
+      {
+        "name": "transfer term heading (season code)",
+        "pattern": "^(?P<code>F|FA|SP|SU|W|WI)\\s+(?P<yy>\\d{2})\\s+(?P<school>[A-Z]\\S*(?:\\s+\\S+)*?)\\s*$",
+        "in_section": [
+          "transfer",
+          "transfer_cert",
+          "transfer_term_code"
+        ],
+        "action": "start_term",
+        "section": "transfer_term_code",
+        "set": {
+          "name": "{code} {yy}",
+          "season": {
+            "template": "{code}",
+            "map": "transfer_season_codes"
+          },
+          "term_type": "transfer",
+          "institution": "{school}",
+          "academic_level": "Undergraduate"
+        }
+      },
+      {
+        "name": "transfer course (remedial marker)",
+        "pattern": "^(?P<subj>[A-Z]{2,4})\\s+(?P<num>[A-Z0-9]{2,5})\\s+\\*\\s+(?P<title>\\S.*?)\\s+(?P<cred>\\d*\\.\\d{3})\\s+(?P<grade>T[A-Z]?)(?:\\s+(?P<r>[EI]))?$",
+        "in_section": [
+          "transfer",
+          "transfer_cert",
+          "transfer_term_code"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subj}",
+          "number": "{num}",
+          "code": "{subj} {num}",
+          "title": "{title|squash}",
+          "credits": "{cred|number}",
+          "grade": "{grade}",
+          "notes": {
+            "templates": [
+              "Marked * (Indicates Remedial or Developmental Course). {r|map:r_notes}",
+              "Marked * (Indicates Remedial or Developmental Course)"
+            ]
+          },
+          "flags": "transfer"
+        },
+        "status_from_grade": {
+          "table": {
+            "TF": "failed",
+            "TW": "withdrawn"
+          },
+          "flags": {
+            "TW": [
+              "withdrawn"
+            ],
+            "TP": [
+              "pass_fail"
+            ]
+          },
+          "default": "completed"
+        },
+        "then": [
+          {
+            "action": "course",
+            "continue": true,
+            "set": {
+              "flags": "remedial"
+            }
+          }
+        ]
+      },
+      {
+        "name": "transfer course (repeat excluded from GPA)",
+        "pattern": "^(?P<subj>[A-Z]{2,4})\\s+(?P<num>[A-Z0-9]{2,5})\\s+(?P<title>\\S.*?)\\s+(?P<cred>\\d*\\.\\d{3})\\s+(?P<grade>T[A-Z]?)\\s+E$",
+        "in_section": [
+          "transfer",
+          "transfer_cert",
+          "transfer_term_code"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subj}",
+          "number": "{num}",
+          "code": "{subj} {num}",
+          "title": "{title|squash}",
+          "credits": "{cred|number}",
+          "grade": "{grade}",
+          "notes": "R (Repeat) column: E = Hours and quality points excluded in GPA",
+          "flags": "transfer"
+        },
+        "status_from_grade": {
+          "table": {
+            "TF": "failed",
+            "TW": "withdrawn"
+          },
+          "flags": {
+            "TW": [
+              "withdrawn"
+            ],
+            "TP": [
+              "pass_fail"
+            ]
+          },
+          "default": "completed"
+        },
+        "then": [
+          {
+            "action": "course",
+            "continue": true,
+            "set": {
+              "flags": "repeated"
+            }
+          },
+          {
+            "action": "course",
+            "continue": true,
+            "set": {
+              "flags": "excluded_from_gpa"
+            }
+          }
+        ]
+      },
+      {
+        "name": "transfer course (repeat included in GPA)",
+        "pattern": "^(?P<subj>[A-Z]{2,4})\\s+(?P<num>[A-Z0-9]{2,5})\\s+(?P<title>\\S.*?)\\s+(?P<cred>\\d*\\.\\d{3})\\s+(?P<grade>T[A-Z]?)\\s+I$",
+        "in_section": [
+          "transfer",
+          "transfer_cert",
+          "transfer_term_code"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subj}",
+          "number": "{num}",
+          "code": "{subj} {num}",
+          "title": "{title|squash}",
+          "credits": "{cred|number}",
+          "grade": "{grade}",
+          "notes": "R (Repeat) column: I = Hours and quality points included in GPA",
+          "flags": "transfer"
+        },
+        "status_from_grade": {
+          "table": {
+            "TF": "failed",
+            "TW": "withdrawn"
+          },
+          "flags": {
+            "TW": [
+              "withdrawn"
+            ],
+            "TP": [
+              "pass_fail"
+            ]
+          },
+          "default": "completed"
+        },
+        "then": [
+          {
+            "action": "course",
+            "continue": true,
+            "set": {
+              "flags": "repeated"
+            }
+          }
+        ]
+      },
+      {
+        "name": "transfer course (failed)",
+        "pattern": "^(?P<subj>[A-Z]{2,4})\\s+(?P<num>[A-Z0-9]{2,5})\\s+(?P<title>\\S.*?)\\s+(?P<cred>\\d*\\.\\d{3})\\s+(?P<grade>TF)$",
+        "in_section": [
+          "transfer",
+          "transfer_cert",
+          "transfer_term_code"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subj}",
+          "number": "{num}",
+          "code": "{subj} {num}",
+          "title": "{title|squash}",
+          "credits": "{cred|number}",
+          "grade": "{grade}",
+          "status": "failed",
+          "flags": "transfer"
+        }
+      },
+      {
+        "name": "transfer course (withdrawn)",
+        "pattern": "^(?P<subj>[A-Z]{2,4})\\s+(?P<num>[A-Z0-9]{2,5})\\s+(?P<title>\\S.*?)\\s+(?P<cred>\\d*\\.\\d{3})\\s+(?P<grade>TW)$",
+        "in_section": [
+          "transfer",
+          "transfer_cert",
+          "transfer_term_code"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subj}",
+          "number": "{num}",
+          "code": "{subj} {num}",
+          "title": "{title|squash}",
+          "credits": "{cred|number}",
+          "grade": "{grade}",
+          "status": "withdrawn",
+          "flags": "transfer"
+        },
+        "then": [
+          {
+            "action": "course",
+            "continue": true,
+            "set": {
+              "flags": "withdrawn"
+            }
+          }
+        ]
+      },
+      {
+        "name": "transfer course",
+        "pattern": "^(?P<subj>[A-Z]{2,4})\\s+(?P<num>[A-Z0-9]{2,5})\\s+(?P<title>\\S.*?)\\s+(?P<cred>\\d*\\.\\d{3})\\s+(?P<grade>T[A-Z]?)$",
+        "in_section": [
+          "transfer",
+          "transfer_cert",
+          "transfer_term_code"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subj}",
+          "number": "{num}",
+          "code": "{subj} {num}",
+          "title": "{title|squash}",
+          "credits": "{cred|number}",
+          "grade": "{grade}",
+          "status": "completed",
+          "flags": "transfer"
+        }
+      },
+      {
+        "name": "transfer term total",
+        "pattern": "^Total Earned Credits\\s+(?P<e>\\d*\\.\\d+)$",
+        "in_section": [
+          "transfer",
+          "transfer_cert",
+          "transfer_term_code"
+        ],
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "set": {
+          "label": "Total Earned Credits",
+          "scope": "transfer",
+          "earned": "{e|number}"
+        }
+      },
+      {
+        "name": "pre-system institution hours",
+        "pattern": "^Ehrs:\\s*(?P<e>\\d*\\.\\d+)$",
+        "in_section": "presys_inst",
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "set": {
+          "label": "Ehrs",
+          "scope": "institutional",
+          "earned": "{e|number}"
+        }
+      },
+      {
+        "name": "pre-system institution earned",
+        "pattern": "^Total Earned Credits\\s+(?P<e>\\d*\\.\\d+)$",
+        "in_section": "presys_inst",
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "set": {
+          "label": "Total Earned Credits",
+          "scope": "institutional",
+          "earned": "{e|number}"
+        }
+      },
+      {
+        "name": "pre-system transfer hours",
+        "pattern": "^Ehrs:\\s*(?P<e>\\d*\\.\\d+)$",
+        "in_section": "presys_transfer",
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "set": {
+          "label": "Ehrs",
+          "scope": "transfer",
+          "earned": "{e|number}"
+        }
+      },
+      {
+        "name": "pre-system transfer earned",
+        "pattern": "^Total Earned Credits\\s+(?P<e>\\d*\\.\\d+)$",
+        "in_section": "presys_transfer",
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "set": {
+          "label": "Total Earned Credits",
+          "scope": "transfer",
+          "earned": "{e|number}"
+        }
+      },
+      {
+        "name": "term heading",
+        "pattern": "^(?P<season>Fall|Winter|Winer|Spring|Summer)\\s+(?P<t>[Tt]erm)\\s+(?P<year>\\d{4})$",
+        "in_section": [
+          "body",
+          "presys_inst",
+          "presys_transfer"
+        ],
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "section": "body",
+        "set": {
+          "name": "{season} {t} {year}",
+          "season": "{season|map:seasons}",
+          "year": "{year|int}",
+          "term_type": "institutional",
+          "institution": "Volunteer State Community College",
+          "academic_level": "Undergraduate"
+        }
+      },
+      {
+        "name": "term heading overprinted on asterisk separator",
+        "pattern": "^\\*(?P<s>F\\*a\\*l\\*l|W\\*i\\*n\\*t\\*e\\*r|W\\*i\\*n\\*e\\*r|S\\*p\\*r\\*i\\*n\\*g|S\\*u\\*m\\*m\\*e\\*r)\\*\\s\\*(?P<t>[Tt]\\*e\\*r\\*m)\\*\\s\\*(?P<y1>\\d)\\*(?P<y2>\\d)\\*(?P<y3>\\d)\\*(?P<y4>\\d)\\*+$",
+        "in_section": [
+          "body",
+          "presys_inst",
+          "presys_transfer"
+        ],
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "section": "body",
+        "set": {
+          "name": "{s|map:starred_seasons} {t|map:starred_term} {y1}{y2}{y3}{y4}",
+          "season": "{s|map:starred_seasons|map:seasons}",
+          "year": {
+            "template": "{y3}{y4}",
+            "map": "two_digit_years"
+          },
+          "term_type": "institutional",
+          "institution": "Volunteer State Community College",
+          "academic_level": "Undergraduate"
+        }
+      },
+      {
+        "name": "course row (remedial marker)",
+        "pattern": "^(?P<subject>[A-Z]{2,4})\\s+(?P<number>\\d{3,4}[A-Z]?)\\s+\\*\\s+(?P<title>\\S.*?)\\s+(?P<credits>\\d*\\.\\d{3})\\s+(?P<grade>[A-Z]{1,2}[+-]?)(?:\\s+(?P<r>[EI]))?$",
+        "in_section": "body",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{subject} {number}",
+          "title": "{title|squash}",
+          "credits": "{credits|number}",
+          "grade": "{grade}",
+          "notes": {
+            "templates": [
+              "Printed with '*' (legend: Indicates Remedial or Developmental Course); '*' printed after course number. {r|map:r_notes}",
+              "Printed with '*' (legend: Indicates Remedial or Developmental Course); '*' printed after course number."
+            ]
+          },
+          "flags": "remedial"
+        },
+        "status_from_grade": {
+          "table": {
+            "F": "failed",
+            "FA": "failed",
+            "K": "failed",
+            "I": "incomplete",
+            "N": "audit",
+            "W": "withdrawn",
+            "WD": "withdrawn",
+            "NC": "no_credit",
+            "NR": "other",
+            "YC": "in_progress"
+          },
+          "flags": {
+            "N": [
+              "audit"
+            ],
+            "W": [
+              "withdrawn"
+            ],
+            "WD": [
+              "withdrawn"
+            ],
+            "P": [
+              "pass_fail"
+            ]
+          },
+          "default": "completed"
+        }
+      },
+      {
+        "name": "course row (repeat excluded from GPA)",
+        "pattern": "^(?P<subject>[A-Z]{2,4})\\s+(?P<number>\\d{3,4}[A-Z]?)\\s+(?P<title>\\S.*?)\\s+(?P<credits>\\d*\\.\\d{3})\\s+(?P<grade>[A-Z]{1,2}[+-]?)\\s+E$",
+        "in_section": "body",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{subject} {number}",
+          "title": "{title|squash}",
+          "credits": "{credits|number}",
+          "grade": "{grade}",
+          "notes": "R (Repeat) column: E = Hours and quality points excluded in GPA",
+          "flags": "repeated"
+        },
+        "status_from_grade": {
+          "table": {
+            "F": "failed",
+            "FA": "failed",
+            "K": "failed",
+            "I": "incomplete",
+            "N": "audit",
+            "W": "withdrawn",
+            "WD": "withdrawn",
+            "NC": "no_credit",
+            "NR": "other",
+            "YC": "in_progress"
+          },
+          "flags": {
+            "N": [
+              "audit"
+            ],
+            "W": [
+              "withdrawn"
+            ],
+            "WD": [
+              "withdrawn"
+            ],
+            "P": [
+              "pass_fail"
+            ]
+          },
+          "default": "completed"
+        },
+        "then": [
+          {
+            "action": "course",
+            "continue": true,
+            "set": {
+              "flags": "excluded_from_gpa"
+            }
+          }
+        ]
+      },
+      {
+        "name": "course row",
+        "pattern": "^(?P<subject>[A-Z]{2,4})\\s+(?P<number>\\d{3,4}[A-Z]?)\\s+(?P<title>\\S.*?)\\s+(?P<credits>\\d*\\.\\d{3})\\s+(?P<grade>[A-Z]{1,2}[+-]?)(?:\\s+(?P<r>[EI]))?$",
+        "in_section": "body",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{subject} {number}",
+          "title": "{title|squash}",
+          "credits": "{credits|number}",
+          "grade": "{grade}",
+          "notes": {
+            "template": "{r}",
+            "map": "r_notes"
+          },
+          "flags": {
+            "template": "{r}",
+            "map": "r_flags"
+          }
+        },
+        "status_from_grade": {
+          "table": {
+            "F": "failed",
+            "FA": "failed",
+            "K": "failed",
+            "I": "incomplete",
+            "N": "audit",
+            "W": "withdrawn",
+            "WD": "withdrawn",
+            "NC": "no_credit",
+            "NR": "other",
+            "YC": "in_progress"
+          },
+          "flags": {
+            "N": [
+              "audit"
+            ],
+            "W": [
+              "withdrawn"
+            ],
+            "WD": [
+              "withdrawn"
+            ],
+            "P": [
+              "pass_fail"
+            ]
+          },
+          "default": "completed"
+        }
+      },
+      {
+        "name": "course quality points",
+        "pattern": "^(?P<qp>\\d*\\.\\d{3})$",
+        "in_section": "body",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "continue": true,
+        "set": {
+          "quality_points": "{qp|number}"
+        }
+      },
+      {
+        "name": "term earned credits",
+        "pattern": "^Total Earned Credits\\s+(?P<e>\\d*\\.\\d+)$",
+        "in_section": "body",
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "set": {
+          "label": "Total Earned Credits",
+          "scope": "term",
+          "earned": "{e|number}"
+        }
+      },
+      {
+        "name": "last standing",
+        "pattern": "^Last Standing:\\s*\\S.*$",
+        "in_section": "body",
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "set": {
+          "notes": "{line}"
+        }
+      },
+      {
+        "name": "term standing",
+        "pattern": "^(?P<st>Good Standing|(?:Academic |Continued |Final )?(?:Probation|Suspension|Warning|Dismissal))$",
+        "in_section": "body",
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "set": {
+          "academic_standing": "{st}"
+        }
+      },
+      {
+        "name": "term honors list",
+        "pattern": "^(?P<h>(?:Dean|President)['’]s List(?: and Honor Roll)?|Honor Roll)$",
+        "in_section": "body",
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "set": {
+          "honors": "{h}"
+        }
+      },
+      {
+        "name": "term combined heading",
+        "pattern": "^TERM COMBINED$",
+        "in_section": "body",
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "set": {
+          "label": "{line}",
+          "scope": "term"
+        }
+      },
+      {
+        "name": "term combined heading (overprinted, letter-spaced)",
+        "pattern": "^T\\s?E\\s?R\\s?M\\s*C\\s?O\\s?M\\s?B\\s?I\\s?N\\s?E\\s?D(?:\\s+PTS)?$",
+        "in_section": "body",
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "set": {
+          "label": "TERM COMBINED",
+          "scope": "term"
+        }
+      },
+      {
+        "name": "term combined hours",
+        "pattern": "^\\s*Ehrs:\\s*(?P<e>\\d*\\.\\d+)\\s+GPA-H\\s+(?P<g>\\d*\\.\\d+)\\s*QPts:\\s*$",
+        "in_section": "body",
+        "requires": [
+          "term"
+        ],
+        "action": "update_totals",
+        "set": {
+          "earned": "{e|number}",
+          "gpa_hours": "{g|number}"
+        }
+      },
+      {
+        "name": "term combined points and GPA",
+        "pattern": "^(?P<q>\\d*\\.\\d+)\\s+GPA:\\s*(?P<gpa>\\d*\\.\\d+)$",
+        "in_section": "body",
+        "requires": [
+          "term"
+        ],
+        "action": "update_totals",
+        "set": {
+          "quality_points": "{q|number}",
+          "gpa": "{gpa|number}"
+        }
+      },
+      {
+        "name": "totals separator before combined rows",
+        "pattern": "^\\*+$",
+        "in_section": "totals",
+        "action": "ignore",
+        "section": "totals_combined"
+      },
+      {
+        "name": "summary row",
+        "pattern": "^(?P<lab>INSTITUTION|TRANSFER|OVERALL)\\s+Ehrs:\\s*(?P<e>\\d*\\.\\d+)\\s+QPts:\\s*(?P<q>\\d*\\.\\d+)$",
+        "in_section": "totals",
+        "action": "start_summary",
+        "set": {
+          "label": "{lab}",
+          "scope": "{lab|map:summary_scopes}",
+          "academic_level": "Undergraduate",
+          "earned": "{e|number}",
+          "quality_points": "{q|number}"
+        }
+      },
+      {
+        "name": "summary row GPA line",
+        "pattern": "^GPA-Hrs:\\s*(?P<g>\\d*\\.\\d+)\\s+GPA:\\s*(?P<gpa>\\d*\\.\\d+)$",
+        "in_section": "totals",
+        "requires": [
+          "summary"
+        ],
+        "action": "summary",
+        "set": {
+          "gpa_hours": "{g|number}",
+          "gpa": "{gpa|number}"
+        },
+        "end_summary": true
+      },
+      {
+        "name": "combined summary row",
+        "pattern": "^(?P<lab>INSTITUTION|TRANSFER|OVERALL)\\s+Ehrs:\\s*(?P<e>\\d*\\.\\d+)\\s+QPts:\\s*(?P<q>\\d*\\.\\d+)$",
+        "in_section": "totals_combined",
+        "action": "start_summary",
+        "set": {
+          "label": "{lab} COMBINED",
+          "scope": "{lab|map:summary_scopes}",
+          "academic_level": "Undergraduate",
+          "earned": "{e|number}",
+          "quality_points": "{q|number}"
+        }
+      },
+      {
+        "name": "combined summary row GPA line",
+        "pattern": "^COMBINED\\s+GPA-Hrs:\\s*(?P<g>\\d*\\.\\d+)\\s+GPA:\\s*(?P<gpa>\\d*\\.\\d+)$",
+        "in_section": "totals_combined",
+        "requires": [
+          "summary"
+        ],
+        "action": "summary",
+        "set": {
+          "gpa_hours": "{g|number}",
+          "gpa": "{gpa|number}"
+        },
+        "end_summary": true
+      },
+      {
+        "name": "separator",
+        "pattern": "^\\*+$",
+        "action": "ignore"
+      }
+    ]
+  },
+  "grading_scale": [
+    {
+      "grade": "A",
+      "points": 4.0,
+      "description": "Superior",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "B",
+      "points": 3.0,
+      "description": "Above Average",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "C",
+      "points": 2.0,
+      "description": "Average",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "D",
+      "points": 1.0,
+      "description": "Passing but below average",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "F",
+      "points": 0.0,
+      "description": "Failing",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "FA",
+      "points": 0.0,
+      "description": "Failing/stopped attending",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "I",
+      "points": null,
+      "description": "Incomplete (Not computed)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "K",
+      "points": null,
+      "description": "Competency Not Achieved (Not computed)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "N",
+      "points": null,
+      "description": "Audit (Not computed)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "P",
+      "points": null,
+      "description": "Pass (Not computed)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "W",
+      "points": null,
+      "description": "Withdrew (Not computed)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "WD",
+      "points": null,
+      "description": "Withdrew – Extenuating Circumstances (applies only to Developmental Studies Students) (Not computed)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "YC",
+      "points": null,
+      "description": "Satisfactory Progress (Developmental Studies) (Not computed)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "#",
+      "points": null,
+      "description": "Course used to satisfy admissions deficiency",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "CR",
+      "points": null,
+      "description": "Competency Achieved (Not computed)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "NC",
+      "points": null,
+      "description": "No Credit (Not computed)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "NR",
+      "points": null,
+      "description": "Grade Not Reported (Not computed)",
+      "counts_in_gpa": false
+    },
+    {
+      "grade": "*",
+      "points": null,
+      "description": "Indicates Remedial or Developmental Course (Not computed)",
+      "counts_in_gpa": false
+    }
+  ],
+  "notes": [
+    "Read by App-parser (Volunteer State Community College two-column transcript layout, no AI). The notes from the attached 'Key to Transcript' page and the footer notice are recorded as one remark. Course titles are squashed to single spaces; all other values are as printed."
+  ],
+  "learned": {
+    "date": "2026-10-28",
+    "by": "claude-opus-5-5",
+    "tries": 1,
+    "verified_on": "2 transcripts (App-parser reproduced Claude's reading exactly)",
+    "repaired": "2026-10-29 by hand: comment lines stop at headings (Degree Awarded, Current Program, Events:, Comments:, term headings), which a Comments: block printed before them had swallowed; prior school credential High School; Member of ... honors kind membership; 2026-10-30 by hand: the student name may contain digits anywhere (placeholder names such as 'Student 10'; the pattern allowed a digit only at the end)",
+    "extended": [
+      {
+        "date": "2026-10-29",
+        "by": "claude-opus-5-5",
+        "tries": 1,
+        "how": "rules may change; re-checked on every transcript",
+        "verified_on": "3 transcripts"
+      },
+      {
+        "date": "2026-10-29",
+        "by": "claude-opus-5-5",
+        "tries": 2,
+        "how": "rules may change; re-checked on every transcript",
+        "verified_on": "4 transcripts"
+      },
+      {
+        "date": "2026-10-29",
+        "by": "claude-opus-5-5",
+        "tries": 1,
+        "how": "rules may change; re-checked on every transcript",
+        "verified_on": "5 transcripts"
+      },
+      {
+        "date": "2026-10-30",
+        "by": "claude-opus-5-5",
+        "tries": 1,
+        "how": "rules may change; re-checked on every transcript",
+        "verified_on": "7 transcripts"
+      },
+      {
+        "date": "2026-10-30",
+        "by": "claude-opus-5-5",
+        "tries": 2,
+        "how": "rules may change; re-checked on every transcript",
+        "verified_on": "8 transcripts"
+      },
+      {
+        "date": "2026-10-30",
+        "by": "claude-opus-5-5",
+        "tries": 1,
+        "how": "rules may change; re-checked on every transcript",
+        "verified_on": "9 transcripts"
+      },
+      {
+        "date": "2026-10-30",
+        "by": "claude-opus-5-5",
+        "tries": 1,
+        "how": "rules may change; re-checked on every transcript",
+        "verified_on": "10 transcripts"
+      }
+    ]
+  }
+}

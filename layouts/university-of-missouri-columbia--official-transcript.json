@@ -1,0 +1,613 @@
+{
+  "recipe_format": 1,
+  "id": "university-of-missouri-columbia--official-transcript",
+  "name": "University of Missouri - Columbia - Official Transcript (two-column record pages with legend pages)",
+  "institution": "University of Missouri – Columbia",
+  "description": "University of Missouri - Columbia 'Official Transcript' layout: record pages with a header block (Name, Student ID, Date of Birth, Soc. Sec. Number) and two unruled columns of terms. Term headings are '<FALL|SPNG|SUMR> YYYY Univ of MO-Col Ugrd' or '<season> YYYY Exam Credit', followed by program lines ('Field-BA', 'Undeclared,A&S'). Course rows are 'Subj 1234 Title Grade Hours [Remark]', topic lines start with '- '. Totals are 'UGRD Term:' / 'UGRD CUM:' rows (GPA Hrs Att, Hrs Ern, Qual Pt, GPA). A 'Degrees Awarded' block lists awarded programs with MM-DD-YYYY dates. Each record page is followed by a two-column legend page (remark codes, grading system, plus/minus notes, FERPA and copy notices); legend notices are recorded once as remarks. Built and tested on one sample transcript.",
+  "layout": {
+    "type": "columns_at",
+    "split_x": [
+      304
+    ],
+    "header_bottom": 92,
+    "footer_top": 760
+  },
+  "detect": {
+    "header_contains": [
+      "Official Transcript",
+      "Student ID:"
+    ],
+    "text_contains": [
+      "This transcript has been produced for:",
+      "Explanation of Grading System",
+      "Soc. Sec. Number:"
+    ]
+  },
+  "constants": {
+    "document.title": "Official Transcript",
+    "document.is_official": true,
+    "document.credit_unit": "semester hours",
+    "institution.name": "University of Missouri – Columbia",
+    "institution.address": "Office of the University Registrar, 125 Jesse Hall, Columbia MO 65211",
+    "institution.phone": "573-882-4249",
+    "institution.website": "http://www.transcripts.missouri.edu",
+    "institution.issuing_office": "Office of the University Registrar"
+  },
+  "fields": [
+    {
+      "field": "student.name_as_printed",
+      "pattern": "(?:^|Name:\\s*)(?P<n>[A-Z][A-Za-z'.-]*(?: [A-Za-z'.-]+)*,\\s*[A-Z][A-Za-z'.-]*(?: [A-Za-z'.-]+)*?)(?:\\s+Course Number.*)?$",
+      "value": "{n}"
+    },
+    {
+      "field": "student.name",
+      "pattern": "(?:^|Name:\\s*)(?P<n>[A-Z][A-Za-z'.-]*(?: [A-Za-z'.-]+)*,\\s*[A-Z][A-Za-z'.-]*(?: [A-Za-z'.-]+)*?)(?:\\s+Course Number.*)?$",
+      "value": "{n|name_last_first}"
+    },
+    {
+      "field": "student.student_id",
+      "pattern": "Student ID:\\s*(\\d+)"
+    },
+    {
+      "field": "student.date_of_birth",
+      "source": "text",
+      "pattern": "^Date of Birth:\\s*(\\S+)\\s*$"
+    },
+    {
+      "field": "document.issue_date",
+      "pattern": "Date:\\s*(\\d{1,2}/\\d{1,2}/\\d{4})",
+      "value": "{1|date:%m/%d/%Y}"
+    }
+  ],
+  "required": [
+    "student.name_as_printed",
+    "student.student_id"
+  ],
+  "tables": {
+    "seasons": {
+      "FALL": "fall",
+      "SPNG": "spring",
+      "SUMR": "summer",
+      "SMMR": "summer",
+      "WINT": "winter",
+      "WNTR": "winter"
+    },
+    "levels": {
+      "Ugrd": "Undergraduate",
+      "UGRD": "Undergraduate",
+      "Grad": "Graduate",
+      "GRAD": "Graduate"
+    },
+    "scopes": {
+      "Term": "term",
+      "CUM": "cumulative"
+    },
+    "degree_names": {
+      "BA": "Bachelor of Arts",
+      "BS": "Bachelor of Science",
+      "BJ": "Bachelor of Journalism",
+      "BFA": "Bachelor of Fine Arts",
+      "BM": "Bachelor of Music",
+      "BSBA": "Bachelor of Science in Business Administration",
+      "BSN": "Bachelor of Science in Nursing",
+      "BSW": "Bachelor of Social Work",
+      "BSEd": "Bachelor of Science in Education",
+      "BES": "Bachelor of Educational Studies",
+      "BHS": "Bachelor of Health Science",
+      "BGS": "Bachelor of General Studies",
+      "MA": "Master of Arts",
+      "MS": "Master of Science",
+      "MEd": "Master of Education",
+      "MBA": "Master of Business Administration",
+      "MPA": "Master of Public Affairs",
+      "MPH": "Master of Public Health",
+      "MSW": "Master of Social Work",
+      "PhD": "Doctor of Philosophy",
+      "EdD": "Doctor of Education",
+      "JD": "Juris Doctor",
+      "MD": "Doctor of Medicine",
+      "DVM": "Doctor of Veterinary Medicine"
+    },
+    "degree_levels": {
+      "BA": "Undergraduate",
+      "BS": "Undergraduate",
+      "BJ": "Undergraduate",
+      "BFA": "Undergraduate",
+      "BM": "Undergraduate",
+      "BSBA": "Undergraduate",
+      "BSN": "Undergraduate",
+      "BSW": "Undergraduate",
+      "BSEd": "Undergraduate",
+      "BES": "Undergraduate",
+      "BHS": "Undergraduate",
+      "BGS": "Undergraduate",
+      "MA": "Graduate",
+      "MS": "Graduate",
+      "MEd": "Graduate",
+      "MBA": "Graduate",
+      "MPA": "Graduate",
+      "MPH": "Graduate",
+      "MSW": "Graduate",
+      "PhD": "Graduate",
+      "EdD": "Graduate",
+      "JD": "Professional",
+      "MD": "Professional",
+      "DVM": "Professional"
+    },
+    "remark_codes": {
+      "E": "Law Experiential Learning",
+      "C": "Computer and Information Proficient",
+      "H": "General Honors",
+      "M": "A course including a substantial amount of mathematics reasoning",
+      "R": "Repeated course, grade not figured in CUM GPA (eff. Fall 2000)",
+      "S": "Service Learning",
+      "W": "A course requiring 5000 words of writing and revision",
+      "*": "An official change has been made to this record"
+    }
+  },
+  "lines": {
+    "ignore": [
+      "^Course Number\\s+Course Title\\s+Grade\\s+Hours\\s+Remarks$",
+      "^GPA Hrs Att\\s+Hrs Ern\\s+Qual Pt\\s+GPA$",
+      "^This transcript has been produced for:$",
+      "^University Registrar$",
+      "^Degrees Awarded$",
+      "^University of Missouri - Columbia$",
+      "^(?:Ugrd|Grad)$",
+      "^Date of Birth:\\s*\\S+$",
+      "^Soc\\. Sec\\. Number:\\s*\\S+$",
+      "^Student ID:\\s*\\d+$",
+      "^University of Missouri-Columbia credit is expressed in semester hours\\.$",
+      "^Explanation of (?:Remarks|Grading System)$",
+      "^(?:[A-Z]{1,2}\\*?|\\*)\\s+=\\s+\\S.*$",
+      "^Grade Point Values for Grading System$",
+      "^[A-Z]{1,2} =\\d\\.\\d{2}\\s+[A-Z]{1,2} =\\d\\.\\d{2}$",
+      "^Plus-Minus Grading Effective Fall 1995$",
+      "^A plus \\(\\+\\) sign following a letter grade adds an additional 0\\.33 grade points$",
+      "^per credit hour\\. A minus \\(-\\) sign following a letter grade subtracts 0\\.33 per$",
+      "^credit hour\\. Plus/Minus grade points apply to undergraduate students only\\.$",
+      "^Law Numeric Grading System Effective Summer 2007$",
+      "^Important Note: Since 1987, the University of Missouri - Columbia has$",
+      "^only used a numeric grading system\\. There are no definitive numeric$",
+      "^grade to letter grade translations\\.$",
+      "^NOTE: To view the complete guide of transcript information$",
+      "^go to http://www\\.transcripts\\.missouri\\.edu\\.$",
+      "^ADDRESS$",
+      "^University of Missouri-Columbia$",
+      "^Office of the University Registrar$",
+      "^125 Jesse Hall$",
+      "^Columbia MO 65211$",
+      "^573-882-4249$",
+      "^In April 2007, the School of Law converted from a 55-100 to a 65-100$",
+      "^grading scale\\. Grades are reflected on the 55-100 scale for Winter 2007$",
+      "^and all prior semesters\\. Grades are reflected on the 65-100 scale for$",
+      "^Summer 2007 and all subsequent semesters\\. All cumulative GPAs were$",
+      "^adjusted to the new scale by a one-time adjustment at the conclusion$",
+      "^of the Winter 2007 semester\\.$",
+      "^NOTE: TO RECEIVE GRADUATE CREDIT IN ANY COURSE, THE STUDENT$",
+      "^MUST HAVE BEEN ENROLLED IN GRADUATE SCHOOL OR AS A POST$",
+      "^BACCALAUREATE SPECIAL\\. ALL COURSES TAKEN IN GRADUATE SCHOOL$",
+      "^OR AS A POST BACCALAUREATE SPECIAL ARE GRADUATE LEVEL\\.$",
+      "^Course Numbering System (?:Through Summer|Effective Fall) 2004$",
+      "^1\\s+to 99\\s+courses primarily for freshmen and sophomores$",
+      "^100\\s+to 199\\s+courses primarily for undergraduates: no$",
+      "^graduate credit$",
+      "^200\\s+to\\s*299\\s+courses for undergraduates, appropriate$",
+      "^professional students, and for graduate$",
+      "^students except those whose graduate major is in$",
+      "^the department in which the course is offered\\.$",
+      "^300\\s+to\\s*399\\s+courses for undergraduates, appropriate$",
+      "^students without restriction to major\\.$",
+      "^400\\s+to\\s*499\\s+primarily for graduate students and$",
+      "^appropriate professional students in special$",
+      "^programs; undergraduates admitted only with$",
+      "^the approval of the instructor of the course$",
+      "^and the dean of the division in which the$",
+      "^course is offered\\.$",
+      "^500\\s+to 599\\s+law, medicine or veterinary medicine courses$",
+      "^0000 to 0999\\s+skill development courses: courses that$",
+      "^do not count towards degree requirement$",
+      "^1000 to 1999\\s+freshman-level courses$",
+      "^2000 to 2999\\s+sophomore-level courses$",
+      "^[34]000 to [34]999\\s+junior/senior level courses \\(upper division\\)$",
+      "^5000 to 6999\\s+professional-level courses$",
+      "^7000 to 7999\\s+beginning graduate courses$",
+      "^8000 to 8999\\s+mid-level graduate courses$",
+      "^9000 to 9999\\s+upper-level graduate courses$",
+      "^IMPORTANT$"
+    ],
+    "rules": [
+      {
+        "name": "legend notices on repeated legend page (already recorded)",
+        "pattern": "^(?:The grade of D is not awarded to Graduate Students\\.?|Plus-Minus Grading Effective Fall (?:1998|2011)|A plus \\(\\+\\) sign following a letter grade adds an additional 0\\.3 grade points|per credit hour, however no additional grade points are awarded for an A\\+\\.|A minus \\(-\\) sign following a letter grade subtracts 0\\.3 per credit hour\\.|Plus/Minus grade points apply to undergraduate students only\\.|Plus/Minus grade points apply to undergraduate and graduate students\\.|In accordance with the Family Educational Rights and Privacy|Act of 1974, information from this transcript may not be released|to a third party without written consent of the student\\.|When official paper transcript is photocopied in color or on the|darker settings of black and white copiers, the word .copy. will|appear several times in large letters\\. A black and white paper|transcript is not official\\.)$",
+        "in_section": "legend_done",
+        "action": "ignore"
+      },
+      {
+        "name": "legend remark: grade D note",
+        "pattern": "^The grade of D is not awarded to Graduate Students\\.?$",
+        "action": "remark",
+        "text": "{line}"
+      },
+      {
+        "name": "legend remark: plus-minus heading",
+        "pattern": "^Plus-Minus Grading Effective Fall (?:1998|2011)$",
+        "action": "remark",
+        "text": "{line}:"
+      },
+      {
+        "name": "legend remark: plus-minus text",
+        "pattern": "^(?:A plus \\(\\+\\) sign following a letter grade adds an additional 0\\.3 grade points|per credit hour, however no additional grade points are awarded for an A\\+\\.|A minus \\(-\\) sign following a letter grade subtracts 0\\.3 per credit hour\\.|Plus/Minus grade points apply to undergraduate students only\\.|Plus/Minus grade points apply to undergraduate and graduate students\\.)$",
+        "action": "remark",
+        "continue": true,
+        "text": "{line}"
+      },
+      {
+        "name": "legend remark: FERPA start",
+        "pattern": "^In accordance with the Family Educational Rights and Privacy$",
+        "action": "remark",
+        "text": "{line}"
+      },
+      {
+        "name": "legend remark: FERPA continued",
+        "pattern": "^(?:Act of 1974, information from this transcript may not be released|to a third party without written consent of the student\\.)$",
+        "action": "remark",
+        "continue": true,
+        "text": "{line}"
+      },
+      {
+        "name": "legend remark: copy notice start",
+        "pattern": "^When official paper transcript is photocopied in color or on the$",
+        "action": "remark",
+        "text": "{line}"
+      },
+      {
+        "name": "legend remark: copy notice continued",
+        "pattern": "^(?:darker settings of black and white copiers, the word .copy. will|appear several times in large letters\\. A black and white paper)$",
+        "action": "remark",
+        "continue": true,
+        "text": "{line}"
+      },
+      {
+        "name": "legend remark: copy notice end",
+        "pattern": "^transcript is not official\\.$",
+        "action": "remark",
+        "continue": true,
+        "text": "{line}",
+        "section": "legend_done"
+      },
+      {
+        "name": "degrees awarded: degree",
+        "pattern": "^(?P<name>(?P<field>\\S.*?)-(?P<deg>BSBA|BSEd|BSN|BSW|BFA|BHS|BES|BGS|BJ|BM|BS|BA|MBA|MPA|MPH|MSW|MEd|MA|MS|PhD|EdD|JD|MD|DVM))\\s+(?P<date>\\d{2}-\\d{2}-\\d{4})$",
+        "action": "start_program",
+        "set": {
+          "name": "{name}",
+          "credential_type": "degree",
+          "degree_name": "{deg|map:degree_names}",
+          "degree_level": "{@degree_name|degree_level}",
+          "field_of_study": "{field}",
+          "academic_level": "{deg|map:degree_levels}",
+          "status": "awarded",
+          "date_awarded": "{date|date:%m-%d-%Y}",
+          "notes": "Listed under Degrees Awarded, University of Missouri - Columbia"
+        }
+      },
+      {
+        "name": "degrees awarded: certificate",
+        "pattern": "^(?P<name>(?P<field>\\S.*?)-(?P<lvl>Ugrd|Grad) Cert)\\s+(?P<date>\\d{2}-\\d{2}-\\d{4})$",
+        "action": "start_program",
+        "set": {
+          "name": "{name}",
+          "credential_type": "certificate",
+          "degree_level": "certificate",
+          "field_of_study": "{field}",
+          "academic_level": "{lvl|map:levels}",
+          "status": "awarded",
+          "date_awarded": "{date|date:%m-%d-%Y}",
+          "notes": "Listed under Degrees Awarded, University of Missouri - Columbia"
+        }
+      },
+      {
+        "name": "degrees awarded: minor",
+        "pattern": "^(?P<name>(?P<field>\\S.*?)-MI)\\s+(?P<date>\\d{2}-\\d{2}-\\d{4})$",
+        "action": "start_program",
+        "set": {
+          "name": "{name}",
+          "credential_type": "minor",
+          "field_of_study": "{field}",
+          "academic_level": "Undergraduate",
+          "status": "awarded",
+          "date_awarded": "{date|date:%m-%d-%Y}",
+          "notes": "Listed under Degrees Awarded, University of Missouri - Columbia"
+        }
+      },
+      {
+        "name": "term heading: exam credit",
+        "pattern": "^(?P<s>FALL|SPNG|SUMR|SMMR|WINT|WNTR)\\s+(?P<year>\\d{4})\\s+(?P<inst>Exam Credit)(?:\\s+(?P<lvl>Ugrd|Grad))?$",
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "set": {
+          "name": "{s} {year} {inst}",
+          "season": "{s|map:seasons}",
+          "year": "{year|int}",
+          "term_type": "test_credit",
+          "institution": "{inst}",
+          "academic_level": "{lvl|map:levels}"
+        }
+      },
+      {
+        "name": "term heading: institutional",
+        "pattern": "^(?P<s>FALL|SPNG|SUMR|SMMR|WINT|WNTR)\\s+(?P<year>\\d{4})\\s+(?P<inst>Univ of MO-[A-Za-z]+)(?:\\s+(?P<lvl>Ugrd|Grad))?$",
+        "action": "start_term",
+        "continue_if_repeated": true,
+        "set": {
+          "name": "{s} {year}",
+          "season": "{s|map:seasons}",
+          "year": "{year|int}",
+          "term_type": "institutional",
+          "institution": "{inst}",
+          "academic_level": "{lvl|map:levels}"
+        }
+      },
+      {
+        "name": "term program line",
+        "pattern": "^(?:Undeclared(?:,\\S.*)?|\\S.*-(?:BSBA|BSEd|BSN|BSW|BFA|BHS|BES|BGS|BJ|BM|BS|BA|MBA|MPA|MPH|MSW|MEd|MA|MS|PhD|EdD|JD|MD|DVM|MI|Ugrd Cert|Grad Cert))$",
+        "requires": [
+          "term"
+        ],
+        "action": "term",
+        "append": {
+          "program": "{line}"
+        },
+        "separator": "; "
+      },
+      {
+        "name": "course row with grade",
+        "pattern": "^(?P<subject>[A-Z][A-Za-z_&]*(?: [A-Z][A-Za-z_&]*){0,2})\\s+(?P<number>\\d{3,4}[A-Z]?)\\s+(?P<title>\\S.*?)\\s+(?P<grade>[A-D][+-]?|F|S\\*?|U|WF|W|IP|I|CR|NR|E|T|HN|H|LC|PR)\\s+(?P<credits>\\d+\\.\\d+)(?:\\s+(?P<remark>[A-Z*]))?$",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{subject} {number}",
+          "title": "{title}",
+          "credits": "{credits|number}",
+          "grade": "{grade}",
+          "attributes": {
+            "object": {
+              "label": "Remarks",
+              "code": "{remark}",
+              "meaning": "{remark|map:remark_codes}"
+            },
+            "unless_empty": "code"
+          }
+        },
+        "status_from_grade": {
+          "table": {
+            "W": "withdrawn",
+            "WF": "failed",
+            "F": "failed",
+            "U": "failed",
+            "I": "incomplete",
+            "IP": "in_progress",
+            "PR": "in_progress",
+            "NR": "other",
+            "E": "other",
+            "H": "audit"
+          },
+          "flags": {
+            "S": [
+              "pass_fail"
+            ],
+            "U": [
+              "pass_fail"
+            ],
+            "CR": [
+              "pass_fail"
+            ],
+            "W": [
+              "withdrawn"
+            ],
+            "E": [
+              "test_credit"
+            ]
+          },
+          "default": "completed"
+        }
+      },
+      {
+        "name": "course row without grade",
+        "pattern": "^(?P<subject>[A-Z][A-Za-z_&]*(?: [A-Z][A-Za-z_&]*){0,2})\\s+(?P<number>\\d{3,4}[A-Z]?)\\s+(?P<title>\\S.*?)\\s+(?P<credits>\\d+\\.\\d+)(?:\\s+(?P<remark>[A-Z*]))?$",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "set": {
+          "subject": "{subject}",
+          "number": "{number}",
+          "code": "{subject} {number}",
+          "title": "{title}",
+          "credits": "{credits|number}",
+          "attributes": {
+            "object": {
+              "label": "Remarks",
+              "code": "{remark}",
+              "meaning": "{remark|map:remark_codes}"
+            },
+            "unless_empty": "code"
+          }
+        }
+      },
+      {
+        "name": "course topic line",
+        "pattern": "^-\\s+(?P<topic>\\S.*)$",
+        "requires": [
+          "term"
+        ],
+        "action": "course",
+        "continue": true,
+        "set": {
+          "notes": "{topic}"
+        }
+      },
+      {
+        "name": "term / cumulative totals",
+        "pattern": "^(?P<lvl>UGRD|GRAD)\\s+(?P<kind>Term|CUM):\\s+(?P<att>\\d+\\.\\d+)\\s+(?P<ern>\\d+\\.\\d+)\\s+(?P<qp>\\d+\\.\\d+)\\s+(?P<gpa>\\d+\\.\\d+)$",
+        "requires": [
+          "term"
+        ],
+        "action": "term_totals",
+        "set": {
+          "label": "{lvl} {kind}:",
+          "scope": "{kind|map:scopes}",
+          "academic_level": "{lvl|map:levels}",
+          "gpa_hours": "{att|number}",
+          "earned": "{ern|number}",
+          "quality_points": "{qp|number}",
+          "gpa": "{gpa|number}"
+        },
+        "then": [
+          {
+            "action": "term",
+            "set": {
+              "academic_level": "{lvl|map:levels}"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "grading_scale": [
+    {
+      "grade": "A",
+      "points": 4.0,
+      "description": "Outstanding",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "B",
+      "points": 3.0,
+      "description": "Superior",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "C",
+      "points": 2.0,
+      "description": "Adequate",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "CR",
+      "points": null,
+      "description": "Credit",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "D",
+      "points": 1.0,
+      "description": "Marginal",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "E",
+      "points": null,
+      "description": "Exam",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "F",
+      "points": 0.0,
+      "description": "Unacceptable",
+      "counts_in_gpa": true
+    },
+    {
+      "grade": "H",
+      "points": null,
+      "description": "Hearer or Auditor",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "HN",
+      "points": null,
+      "description": "Honors - Medicine only, beginning Fall 1997",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "I",
+      "points": null,
+      "description": "Incomplete",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "IP",
+      "points": null,
+      "description": "In Progress",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "LC",
+      "points": null,
+      "description": "Letter of Commendation - Medicine only, beginning Summer 1998",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "NR",
+      "points": null,
+      "description": "Not Reported",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "PR",
+      "points": null,
+      "description": "Preregistered",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "S",
+      "points": null,
+      "description": "Satisfactory",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "S*",
+      "points": null,
+      "description": "Satisfactory with Honors - Medicine only",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "T",
+      "points": null,
+      "description": "Non UM system transfer course",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "U",
+      "points": null,
+      "description": "Unsatisfactory",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "W",
+      "points": null,
+      "description": "Withdrew Passing",
+      "counts_in_gpa": null
+    },
+    {
+      "grade": "WF",
+      "points": 0.0,
+      "description": "Withdrew Failing",
+      "counts_in_gpa": true
+    }
+  ],
+  "notes": [
+    "Read by App-parser (University of Missouri - Columbia 'Official Transcript' layout, no AI). Values are as printed; legend notices are recorded once as remarks."
+  ],
+  "learned": {
+    "date": "2026-10-27",
+    "by": "claude-opus-5-5",
+    "tries": 1,
+    "verified_on": "1 transcript (App-parser reproduced Claude's reading exactly)"
+  }
+}
