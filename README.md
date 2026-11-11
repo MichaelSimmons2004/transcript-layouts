@@ -30,12 +30,11 @@ layouts it already has. The app sends nothing about students: only the requests 
 
 ## How layouts get here
 
-Layouts are added by the project's maintainers, after review, with the app's `library/publish.py` script. That
-script checks each layout, rebuilds `index.json` and signs it. Planned: layouts learned on users' computers will be
-sent here for review automatically, through a small submission service.
-
-Please don't open pull requests with layouts learned from real students' transcripts unless you're part of the
-project: every layout is reviewed first.
+Layouts are added with the app's `library/publish.py` script, which checks each one automatically first: it must be
+a valid layout, and contain nothing that looks like personal data. On the computer that learned it, the app has
+already checked it against that school's transcripts (it must read them exactly as the AI did, and contain none of
+their student information). Later, layouts learned on users' computers will be sent here automatically, through a
+small submission service. There's no need to send layouts here yourself.
 
 ## License
 
